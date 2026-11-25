@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C9 · Spine Shelf — Fox One Multi-Hero</title>
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  /* The rotation is a shelf. The current title is open as a wide panel; the rest stand beside it as
+     angled spines with their title art turned on its side. The next spine is the peek: it is wider,
+     and its edge fills as the dwell timer. On advance the panel folds shut and the next spine swings open. */
+  .stage { background: radial-gradient(1200px 700px at 30% 45%, #17171b 0%, #050506 70%); }
+  .shelf { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; perspective: 2600px; perspective-origin: 1100px 540px; }
+
+  .bk { position: absolute; top: 150px; height: 780px; border-radius: 22px; overflow: hidden; background: #0c0c0e;
+    transform-origin: 0 50%; transform-style: preserve-3d;
+    transition: left .95s var(--ease-inout), width .95s var(--ease-inout), transform .95s var(--ease-inout),
+                opacity .5s var(--ease-std), border-radius .95s var(--ease-inout), filter .95s var(--ease-inout);
+    box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+  .bk.snap { transition: none !important; }
+  .bk.leaving { transition: left .8s var(--ease-inout), width .8s var(--ease-inout), transform .8s var(--ease-inout), opacity .7s cubic-bezier(.6,0,.9,.4); }
+  .bk .art { position: absolute; inset: 0; }
+  .bk .art > * { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Spine skin: dark wash + the title art turned 90° (reads bottom to top, like a book spine) */
+  .bk .wash { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.25), rgba(0,0,0,.72)); opacity: 1; transition: opacity .8s var(--ease-std); }
+  .bk .spine-logo { position: absolute; left: 50%; bottom: 40px; width: 520px; height: 64px; transform-origin: 0 50%;
+    transform: rotate(-90deg) translateY(-50%); display: flex; align-items: center; transition: opacity .5s var(--ease-std); }
+  .bk .spine-logo img { max-width: 100%; max-height: 100%; object-fit: contain; object-position: left center; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
+  .bk .edge { position: absolute; left: 0; bottom: 0; width: 6px; height: 0; background: #fff; opacity: 0; box-shadow: 0 0 14px rgba(255,255,255,.7); }
+  .bk.peek .edge { opacity: 1; }
+  .bk.peek .spine-logo { width: 560px; height: 92px; }
+
+  /* Open panel */
+  .bk.open .wash, .bk.open .spine-logo { opacity: 0; }
+  .bk .scrim { opacity: 0; transition: opacity .7s var(--ease-std);
+    background: linear-gradient(90deg, rgba(0,0,0,.8) 0%, rgba(0,0,0,.5) 32%, rgba(0,0,0,0) 62%), linear-gradient(0deg, rgba(0,0,0,.6) 0%, rgba(0,0,0,0) 45%); }
+  .bk.open .scrim { opacity: 1; }
+  .bk .copy { position: absolute; left: 64px; bottom: 64px; width: 620px; display: flex; flex-direction: column; align-items: flex-start; opacity: 0; }
+  .bk.open .copy { opacity: 1; }
+  .copy > * + * { margin-top: 20px; }
+  .copy .logo img { max-width: 520px; max-height: 190px; }
+  .copy .ctas { margin-top: 30px !important; }
+  .stagger > * { --delay: 520ms; }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage"><div class="shelf" id="shelf"></div></div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/art.js"></script>
+<script src="shared/stage.js"></script>
+<script src="shared/hero-focus.js"></script>
+<script>
+const K = HeroKit.init({
+  title: "C9 · Spine Shelf",
+  notes: "The rotation is a shelf. The current title is an open panel; the others stand beside it as angled spines with their title art on its side. The next spine is the peek, and its edge fills as the timer. On advance the panel folds shut and goes to the back while the next spine swings open.",
+  extraKeys: [["↑ ↓", "Nav / hero / rail"], ["→ past +", "Bring the next title into the hero"]],
+});
+
+const shelf = document.getElementById("shelf"), N = K.data.length;
+/* Shelf slots (stage px): 0 = open panel, 1 = peek spine, then narrow spines */
+const SLOTS = [
+  { x: 120, w: 1160, ry: 0 },
+  { x: 1316, w: 190, ry: -24 },
+  { x: 1520, w: 112, ry: -30 },
+  { x: 1638, w: 96, ry: -34 },
+  { x: 1740, w: 84, ry: -38 },
+];
+const still = (d) => d.art.kind === "video" ? (d.art.still || d.art.poster) : d.art.src;
+
+function badge(d) {
+  if (d.type === "live") return `<span class="badge badge--live"><span class="dot"></span>Live</span>`;
+  return d.status ? `<span class="badge badge--new">${d.status.badge}</span>` : "";
+}
+/* Primary CTA first, then the square actions; + (My Stuff) is always last so → ends on it */
+function ctaHtml(d) {
+  const list = d.ctas.some((c) => c.icon === "plus") ? d.ctas : [...d.ctas, { icon: "plus", label: "My Stuff" }];
+  return list.map((c, k) => k === 0 ? `<span class="btn is-focused">${K.ICONS[c.icon]}${c.label}</span>` : `<span class="btn btn--sq">${K.ICONS[c.icon]}</span>`).join("");
+}
+function copy(d) {
+  const meta = d.meta.filter((m) => !(d.type === "live" && m === "Live"));
+  const b = badge(d);
+  return `<div class="copy stagger">
+    ${b ? `<div class="status-row" style="--i:0">${b}</div>` : ""}
+    <div class="logo" style="--i:1"><img src="${d.logo}" alt="${d.logoAlt || ""}" draggable="false"></div>
+    <div class="meta" style="--i:2">${meta.map((m, k) => k === 0 ? `<span class="net">${m}</span>` : `<span>${m}</span>`).join("")}</div>
+    <div class="ctas" style="--i:3">${ctaHtml(d)}</div>
+  </div>`;
+}
+
+/* One element per title; each gets a slot from its distance to the current index */
+const books = K.data.map((d, i) => {
+  const el = document.createElement("div"); el.className = "bk";
+  el.innerHTML = `<div class="art"><img src="${still(d)}" alt="" draggable="false" style="object-position:${Math.round((d.focusX ?? .5) * 100)}% 50%"></div>
+    <div class="vid"></div><div class="scrim"></div><div class="wash"></div>
+    <div class="spine-logo"><img src="${d.logo}" alt="" draggable="false"></div><div class="edge"></div>`;
+  shelf.append(el); el._d = d; return el;
+});
+
+function place(el, slot, instant) {
+  const s = SLOTS[Math.min(slot, SLOTS.length - 1)];
+  el.classList.toggle("snap", !!instant);
+  Object.assign(el.style, { left: s.x + "px", width: s.w + "px", transform: `rotateY(${s.ry}deg)`, zIndex: 20 - slot,
+    opacity: slot >= SLOTS.length ? 0 : 1, borderRadius: slot === 0 ? "24px" : "14px", filter: slot > 1 ? `brightness(${1 - slot * .1})` : "none" });
+  el.classList.toggle("open", slot === 0);
+  el.classList.toggle("peek", slot === 1);
+}
+
+let cur = -1;
+function show(i, prev, dir = 1) {
+  books.forEach((el, k) => {
+    const slot = (k - i + N) % N;
+    const was = cur < 0 ? -1 : (k - cur + N) % N;
+    /* The panel that was open folds shut toward the left, then re-enters at the back of the shelf */
+    if (dir > 0 && was === 0 && cur >= 0) {
+      el.classList.remove("open", "is-active"); el.classList.add("leaving");
+      Object.assign(el.style, { transform: "rotateY(70deg) translateZ(-200px)", opacity: 0, left: "40px", width: "300px" });
+      setTimeout(() => { el.classList.remove("leaving"); place(el, slot + 1, true); void el.offsetWidth; place(el, slot); }, 650);
+    } else if (dir < 0 && slot === 0 && cur >= 0) {
+      /* Going back: the previous title slides out from the left edge */
+      place(el, 0, true); Object.assign(el.style, { transform: "rotateY(70deg)", opacity: 0, left: "40px", width: "300px" });
+      void el.offsetWidth; place(el, 0);
+    } else place(el, slot, cur < 0);
+    el.querySelector(".edge").style.height = "0";
+  });
+  /* Copy + video live only on the open panel */
+  const el = books[i], d = el._d;
+  books.forEach((b) => { b.querySelector(".copy")?.remove(); b.querySelector(".vid").innerHTML = ""; });
+  if (d.art.kind === "video") el.querySelector(".vid").innerHTML = `<div class="art">${K.art(d)}</div>`;
+  el.insertAdjacentHTML("beforeend", copy(d));
+  el.classList.remove("is-active"); void el.offsetWidth; el.classList.add("is-active");
+  K.syncVideos(el);
+  cur = i;
+  focus && focus.refresh();
+}
+
+let focus = null;
+K.rot = K.Rotator({
+  count: N, minGap: 700,
+  durationFor: (i) => K.data[i].dwell || 8000,
+  onChange: (i, prev, dir) => show(i, prev, dir),
+  onTick: (p, i) => { const pk = books[(i + 1) % N]; pk.querySelector(".edge").style.height = (p * 100).toFixed(2) + "%"; },
+});
+focus = HeroFocus.init(K, {
+  ctas: () => [...books[K.rot.index].querySelectorAll(".copy .btn")],
+});
+show(0);
+K.refreshHud();
+</script>
+</body>
+</html>

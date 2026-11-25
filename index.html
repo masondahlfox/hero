@@ -158,6 +158,12 @@ const CONCEPTS = [
     tr: "340ms snap focus · overshoot + shine", tx: "Big title + stat row, counts up", best: "Making the home feel playful and alive", cost: 2 },
   { f: "c8-editorial-split.html", th: "c8", t: "Editorial Split", tag: "Editorial", d: "Cinematic art opens from the center line like a curtain. The lockup holds a strong left column, a huge condensed headline sits top-right with an inline trailer, and the next title peeks in from the right edge with the dwell timer beside it.",
     tr: "1.25s center curtain · headline line reveal", tx: "Lockup left, headline + trailer right", best: "Tentpoles with a strong trailer or key line", cost: 1 },
+  { f: "c9-spine-shelf.html", th: "c9", t: "Spine Shelf", tag: "Shelf", d: "The rotation is a shelf. The current title is open as a wide panel and the rest stand beside it as angled spines with their title art turned on its side. The next spine is wider and its edge fills as the timer; on advance the panel folds shut and the next spine swings open.",
+    tr: "0.95s fold shut + swing open", tx: "Lockup inside the open panel", best: "Showing the whole rotation at a glance", cost: 2 },
+  { f: "c10-film-gate.html", th: "c10", t: "Film Gate", tag: "Film strip", d: "A strip of film slices across the full-bleed hero and creeps left the whole time. The next title always sits in the frame beside the gate, and its distance to the gate is the timer. When it reaches the gate, that frame opens out to fill the screen.",
+    tr: "Continuous reel · 1.05s frame-to-full-bleed open", tx: "Lockup above the strip", best: "Cinematic rotation with built-in 'up next'", cost: 2 },
+  { f: "c11-long-exposure.html", th: "c11", t: "Long Exposure", tag: "Motion", d: "Long-exposure photography as the transition. The next title rides a light streak on the right edge: its art smeared sideways with its title art sharp on top. The streak widens as the timer runs, then sweeps across the screen and resolves into the picture.",
+    tr: "1.25s streak sweep + smear resolve", tx: "Copy blurs out, lockup re-stages", best: "Sports and high-energy titles", cost: 2 },
 ];
 const card = (o, thumb, num) => `
   <a class="opt" href="${o.f}">
