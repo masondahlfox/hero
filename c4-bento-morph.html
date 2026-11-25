@@ -62,17 +62,18 @@
 <script>
 const K = HeroKit.init({
   title: "C4 · Bento Morph",
-  notes: "Each content type gets its own layout of facets. Live = feed + scoreboard + win probability. Series = art + episode or social-proof stat. Premiere = cinemascope art + countdown. The board re-flows between layouts, and the featured title grows out of its thumbnail.",
+  notes: "Each content type gets its own layout of facets. Live = feed + scoreboard + win probability. Series = art + episode or social-proof stat. Replay = cinemascope art + match facet. The board re-flows between layouts, and the featured title grows out of its thumbnail.",
   rail: false,
 });
 const board = document.getElementById("board"), N = K.data.length;
 const X0 = 120, Y0 = 150, CW = (1680 - 11 * 16) / 12, RH = (880 - 5 * 16) / 6;
 const R = ([c1, c2, r1, r2]) => ({ left: X0 + (c1 - 1) * (CW + 16), top: Y0 + (r1 - 1) * (RH + 16), width: (c2 - c1 + 1) * CW + (c2 - c1) * 16, height: (r2 - r1 + 1) * RH + (r2 - r1) * 16 });
 const LAYOUT = {
-  "eagles-cowboys": { feat: [1, 8, 1, 4], aux: [9, 12, 1, 2], info: [9, 12, 3, 6], t: [[1, 3, 5, 6], [4, 6, 5, 6], [7, 8, 5, 6]] },
-  "best-medicine":  { feat: [5, 12, 1, 5], info: [1, 4, 1, 3], aux: [1, 4, 4, 6], t: [[5, 7, 6, 6], [8, 10, 6, 6], [11, 12, 6, 6]] },
-  "accused":        { feat: [1, 8, 1, 5], info: [9, 12, 1, 3], aux: [9, 12, 4, 6], t: [[1, 3, 6, 6], [4, 6, 6, 6], [7, 8, 6, 6]] },
-  "long-winter":    { feat: [1, 12, 1, 3], info: [1, 4, 4, 6], aux: [5, 8, 4, 6], t: [[9, 12, 4, 4], [9, 12, 5, 5], [9, 12, 6, 6]] },
+  "eagles-cowboys": { feat: [1, 8, 1, 4], aux: [9, 12, 1, 2], info: [9, 12, 3, 6], t: [[1, 2, 5, 6], [3, 4, 5, 6], [5, 6, 5, 6], [7, 8, 5, 6]] },
+  "best-medicine":  { feat: [5, 12, 1, 5], info: [1, 4, 1, 3], aux: [1, 4, 4, 6], t: [[5, 6, 6, 6], [7, 8, 6, 6], [9, 10, 6, 6], [11, 12, 6, 6]] },
+  "accused":        { feat: [1, 8, 1, 5], info: [9, 12, 1, 3], aux: [9, 12, 4, 6], t: [[1, 2, 6, 6], [3, 4, 6, 6], [5, 6, 6, 6], [7, 8, 6, 6]] },
+  "fc-juarez":      { feat: [1, 12, 1, 3], info: [1, 4, 4, 6], aux: [5, 8, 4, 6], t: [[9, 10, 4, 5], [11, 12, 4, 5], [9, 10, 6, 6], [11, 12, 6, 6]] },
+  "fox-soul":       { feat: [5, 12, 1, 4], info: [1, 4, 1, 4], aux: [1, 4, 5, 6], t: [[5, 6, 5, 6], [7, 8, 5, 6], [9, 10, 5, 6], [11, 12, 5, 6]] },
 };
 
 const AUX = {
@@ -81,7 +82,8 @@ const AUX = {
       <span style="--c:${d.score.home.color};width:8px"></span><b>${d.score.home.abbr}</b><em>${d.score.home.score}</em></div>`,
   "best-medicine": () => `<h4>New episode</h4><div class="big">S1<small> · </small>E9</div><div class="sub">New episodes Tuesdays 8/7c on FOX, next day on FOX One.</div>`,
   "accused": (d) => `<h4>${d.sponsor.label} ${d.sponsor.name}</h4><div class="big">96<small>%</small></div><div class="sub">of FOX One viewers recommend it — past 30 days.</div>`,
-  "long-winter": (d) => `<h4>World premiere · Sun 8/7c</h4><div class="countdown" data-countdown="${K.T0 + d.countdown.startsInMin * 60000}"><span class="countdown__units"></span></div><div class="sub">Set a reminder and it'll be waiting on your home screen.</div>`,
+  "fc-juarez": () => `<h4>Full match replay</h4><div class="big">90<small>'</small></div><div class="sub">Every Liga MX match, live and on demand on FOX One.</div>`,
+  "fox-soul": () => `<h4>Streaming free</h4><div class="big">24<small>/7</small></div><div class="sub">Black culture, news and entertainment, always on.</div>`,
 };
 
 const tiles = K.data.map((d) => {

@@ -17,11 +17,20 @@ Open `index.html` in Chrome or Safari. Everything runs locally from `file://` wi
 Extras: C1 `M` marquee mode, `T` light theme · C2 `Enter` dive · 06 `Enter` takeover · 07 `↑ ↓`.
 
 ## Swapping content
-All titles live in `shared/data.js` (mock metadata). Art can be `img`, `video` (looping muted) or generated `svg` placeholders.
-Title art for C2's masks is embedded in `shared/logo-data.js` as data URIs (Chrome blocks CSS mask images from `file://`).
-To regenerate after replacing a logo PNG in `assets/logos/`, base64 it into that file under the same title id.
+The carousel shows only the titles that have a folder in `assets/titles/` and loops through them:
+Eagles vs Cowboys, Best Medicine, Accused, FC Juárez and FOX Soul. Each folder holds the processed files the prototypes use:
+
+| File | Use |
+|---|---|
+| `logo.png` | Title art (transparent PNG). FC Juárez has no supplied title art, so its logo is typeset. The FOX Soul logo was lifted out of its key art. |
+| `key-16x9.jpg` | 1920×1080 key art, used for stills and thumbnails (FOX Soul's has the logo removed so it isn't shown twice). |
+| `video.mp4` + `video-poster.jpg` | Looping muted background, H.264 1920 wide, 30fps, no audio. |
+
+Raw source files (screen recordings, 4K PNGs, AVIF) stay in a git-ignored `_source/` folder next to them.
+All metadata text in `shared/data.js` is still mock. Title art for C2's masks is embedded in `shared/logo-data.js` as data URIs
+(Chrome blocks CSS mask images from `file://`); regenerate it from each `logo.png` after replacing a logo.
 
 ## Notes
 - Stage is authored at 1920×1080 and scaled to fit the window. Press `F` for true 1:1 pixels.
-- The Eagles clip is transcoded to H.264 / 60fps (`assets/video/`) because the source HEVC/120fps won't play reliably in Chrome.
-- The Accused key art, nav strip and rail strip are cropped from `22LR.template.home`.
+- Videos are transcoded to H.264 because source HEVC clips won't play reliably in Chrome.
+- The nav strip and rail strip are cropped from `22LR.template.home`.

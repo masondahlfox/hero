@@ -163,7 +163,7 @@
     if (a.kind === "video") {
       if (layer !== "all" && layer !== "bg") return "";
       const pos = `style="object-position:${Math.round((item.focusX ?? .5) * 100)}% 50%"`;
-      if (opts.still) return `<img src="${a.poster}" alt="" draggable="false" ${pos}>`;
+      if (opts.still) return `<img src="${a.still || a.poster}" alt="" draggable="false" ${pos}>`;
       return `<video src="${a.src}" poster="${a.poster}" ${opts.noAutoplay ? "" : "autoplay"} muted loop playsinline preload="auto" ${pos}></video>`;
     }
     if (a.kind === "img") {
