@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C13 · Slit Reel — Fox One Multi-Hero</title>
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  /* Cinematic, quiet, black-and-white until it matters. Between titles the picture closes down to a thin
+     vertical slit and becomes one frame in a reel of grey slits. The reel glides one step, the next title's
+     slit takes on colour, then opens back out to full bleed. At rest, the next titles wait as slits on the
+     right edge and the next one fills with colour from the bottom as its timer. */
+  .stage { background: #0c0c0c; }
+
+  /* ---------- Full-bleed picture ---------- */
+  .bd { position: absolute; inset: 0; z-index: 1; overflow: hidden; clip-path: inset(0px 0px 0px 0px round 0px); }
+  .bd .art { position: absolute; inset: 0; }
+  .bd .art > * { width: 100%; height: 100%; object-fit: cover; transition: filter .6s var(--ease-std); animation: drift 16s linear both; }
+  @keyframes drift { from { transform: scale(1.06); } to { transform: scale(1.0); } }
+  .bd .scrim { position: absolute; inset: 0; transition: opacity .5s var(--ease-std); background:
+      linear-gradient(90deg, rgba(0,0,0,.78) 0%, rgba(0,0,0,.42) 32%, rgba(0,0,0,0) 60%),
+      linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,0) 18%),
+      linear-gradient(0deg, rgba(0,0,0,.88) 0%, rgba(0,0,0,.3) 26%, rgba(0,0,0,0) 48%); }
+  .bd .vig { position: absolute; inset: 0; background: radial-gradient(130% 100% at 55% 45%, transparent 55%, rgba(0,0,0,.5) 100%); }
+  /* closing down to the slit */
+  .bd.close { transition: clip-path .68s var(--ease-inout); clip-path: var(--slit); }
+  .bd.close .art > * { filter: grayscale(1) brightness(.78) contrast(1.05); }
+  .bd.close .scrim, .bd.close .vig { opacity: 0; }
+  .bd.fade { transition: opacity .22s linear; opacity: 0; }
+  /* opening out of the slit */
+  .bd.open0 { clip-path: var(--slit); opacity: 0; }
+  .bd.open0 .scrim, .bd.open0 .vig { opacity: 0; }
+  .bd.open { transition: clip-path .95s var(--ease-inout), opacity .2s linear; clip-path: inset(0px 0px 0px 0px round 0px); opacity: 1; }
+  .bd.open .scrim, .bd.open .vig { opacity: 1; transition: opacity .7s .45s var(--ease-std); }
+
+  /* ---------- Reel of slits (transition only; never focusable) ---------- */
+  .reel { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .reel__row { position: absolute; left: 0; top: 240px; height: 600px; display: flex; gap: 14px; will-change: transform; }
+  .reel__row.glide { transition: transform .78s var(--ease-inout); }
+  .sl { position: relative; flex: none; width: 104px; height: 100%; overflow: hidden; background: #1a1a1a; border-radius: 2px;
+        opacity: 0; transform: translateX(calc(var(--side) * 60px)); transition: width .78s var(--ease-inout), opacity .4s var(--ease-std), transform .6s var(--ease-out); }
+  .reel.in .sl { opacity: 1; transform: none; transition-delay: 0s, calc(220ms + var(--dist) * 28ms), calc(220ms + var(--dist) * 28ms); }
+  .reel.in .sl.hold { opacity: 0; transition: none; }
+  .reel.out .sl:not(.on) { opacity: 0; transform: translateX(calc(var(--side) * 220px)); transition: opacity .45s var(--ease-std), transform .8s var(--ease-inout); }
+  .reel.out .sl.on { opacity: 0; transition: opacity .2s .25s linear, width .78s var(--ease-inout); }
+  .sl img { position: absolute; top: 0; left: 50%; height: 100%; width: auto; min-width: 100%; transform: translateX(-50%) scale(var(--z, 1));
+            transform-origin: var(--o, 50%) 50%; object-fit: cover; filter: grayscale(1) brightness(.62) contrast(1.08); transition: filter .78s var(--ease-inout); }
+  .sl img.full { width: 1920px; height: 1080px; top: -240px; min-width: 0; transform: translateX(-50%); }
+  .sl.on { width: 260px; }
+  .sl.on img { filter: none; }
+  .sl.lit img { filter: grayscale(1) brightness(.78) contrast(1.05); }
+
+  /* ---------- Lockup ---------- */
+  .copy { position: absolute; z-index: 20; left: 120px; bottom: 172px; width: 980px; display: flex; flex-direction: column; align-items: flex-start; }
+  .copy > * + * { margin-top: 18px; }
+  .copy .logo img { max-width: 620px; max-height: 200px; }
+  .copy .ctas { margin-top: 34px !important; }
+  .copy > * { opacity: 0; }
+  .copy .logo { clip-path: inset(0 100% 0 0); filter: blur(14px); }
+  .copy.is-in .logo { opacity: 1; animation: wipe 1.2s var(--ease-out) both; }
+  @keyframes wipe { from { clip-path: inset(0 100% 0 0); filter: blur(14px); } 60% { filter: blur(0); } to { clip-path: inset(0 0 0 0); filter: blur(0); } }
+  .copy .tagline { letter-spacing: .5em; }
+  .copy.is-in .tagline { animation: track 1.3s .25s var(--ease-out) both; }
+  @keyframes track { from { opacity: 0; letter-spacing: .5em; } to { opacity: 1; letter-spacing: .01em; } }
+  .copy.is-in .meta, .copy.is-in .ctas { animation: rise .8s var(--ease-out) both; }
+  .copy.is-in .meta { animation-delay: .35s; }
+  .copy.is-in .ctas { animation-delay: .5s; }
+  .copy.out { transition: opacity .38s var(--ease-std), filter .38s, transform .5s var(--ease-inout); opacity: 0; filter: blur(8px); transform: translateX(-24px); }
+  .copy.out > * { opacity: 1; }
+
+  /* ---------- Peek: the next titles as slits on the right edge. Never focusable. ---------- */
+  .pk { position: absolute; z-index: 22; right: 120px; bottom: 172px; height: 440px; display: flex; gap: 12px; align-items: stretch;
+        transition: opacity .35s var(--ease-std), transform .7s var(--ease-out); }
+  .pk.pre { opacity: 0; transform: translateX(60px); }
+  .pk.out { opacity: 0; transform: translateX(-30px); transition: opacity .3s var(--ease-std), transform .4s var(--ease-inout); }
+  .pk__s { position: relative; flex: none; overflow: hidden; border-radius: 2px; background: #151515; box-shadow: 0 18px 50px rgba(0,0,0,.5); }
+  .pk__s img.a { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .pk__s img.g { filter: grayscale(1) brightness(.55) contrast(1.08); }
+  .pk__s img.c { clip-path: inset(calc((1 - var(--p, 0)) * 100%) 0 0 0); }
+  .pk__s.n1 { width: 150px; }
+  .pk__s.n2 { width: 56px; opacity: .8; }
+  .pk__s.n3 { width: 28px; opacity: .55; }
+  .pk__line { position: absolute; left: 0; right: 0; height: 2px; top: calc((1 - var(--p, 0)) * 100% - 1px); background: rgba(255,255,255,.85); box-shadow: 0 0 14px rgba(255,255,255,.6); }
+  .pk__s.n1::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.75) 0%, rgba(0,0,0,0) 42%); }
+  .pk__logo { position: absolute; z-index: 2; left: 14px; right: 14px; bottom: 18px; height: 64px; display: flex; align-items: flex-end; justify-content: center; }
+  .pk__logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .pk__s .badge { position: absolute; z-index: 2; left: 10px; top: 10px; }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage">
+  <div id="bds"></div>
+  <div class="reel" id="reel"></div>
+  <div id="copyHost"></div>
+  <div id="pkHost"></div>
+  <div class="grain"></div>
+</div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/art.js"></script>
+<script src="shared/stage.js"></script>
+<script src="shared/hero-focus.js"></script>
+<script>
+const K = HeroKit.init({
+  title: "C13 · Slit Reel",
+  notes: "Cinematic and quiet. On advance the picture closes down to a thin vertical slit and turns grey, becoming one frame in a reel of slits. The reel glides one step, the next title's slit takes on colour and opens back out to full bleed. At rest the next titles wait as slits on the right edge; the nearest fills with colour from the bottom as its timer.",
+  extraKeys: [["→ past +", "Bring the next title into the hero"]],
+});
+
+const N = K.data.length, stage = K.stage;
+const bds = document.getElementById("bds"), reel = document.getElementById("reel");
+const copyHost = document.getElementById("copyHost"), pkHost = document.getElementById("pkHost");
+const D = (i) => K.data[((i % N) + N) % N];
+const still = (d) => d.art.kind === "video" ? (d.art.still || d.art.poster) : d.art.src;
+const frame = (d) => d.art.kind === "video" ? (d.art.poster || d.art.still) : d.art.src;   /* what the video opens on */
+const pos = (d) => `${Math.round((d.focusX ?? .5) * 100)}% 50%`;
+
+/* Reel geometry (stage px): slits 104 wide, the lit one 260, 600 tall, centred on the stage */
+const SW = 104, AW = 260, GAP = 14, SH = 600, TOP = 240, SPAN = 9;
+const SLIT = `inset(${TOP}px ${(1920 - AW) / 2}px ${1080 - TOP - SH}px ${(1920 - AW) / 2}px round 2px)`;
+stage.style.setProperty("--slit", SLIT);
+const rnd = (s) => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+/* ---------- Peek ---------- */
+function peekHtml(i) {
+  const a = D(i + 1), b = D(i + 2), c = D(i + 3);
+  return `<div class="pk pre" aria-hidden="true">
+    <div class="pk__s n1"><img class="a g" src="${still(a)}" alt="" style="object-position:${pos(a)}"><img class="a c" src="${still(a)}" alt="" style="object-position:${pos(a)}">
+      <div class="pk__line"></div>${a.type === "live" ? K.ui.badge(a, { tile: true }) : ""}<div class="pk__logo"><img src="${a.logo}" alt=""></div></div>
+    <div class="pk__s n2"><img class="a g" src="${still(b)}" alt="" style="object-position:${pos(b)}"></div>
+    <div class="pk__s n3"><img class="a g" src="${still(c)}" alt="" style="object-position:${pos(c)}"></div></div>`;
+}
+function setPeek(i) {
+  pkHost.innerHTML = peekHtml(i);
+  const el = pkHost.firstElementChild;
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove("pre")));
+}
+
+/* ---------- Lockup ---------- */
+function copyHtml(d) {
+  return `<div class="copy">${K.ui.title(d)}${K.ui.metaRow(d)}${d.tagline ? `<div class="tagline">${d.tagline}</div>` : ""}${K.ui.ctas(d)}</div>`;
+}
+
+function makeBd(d) {
+  const bd = document.createElement("div"); bd.className = "bd";
+  bd.innerHTML = `<div class="art">${K.art(d)}</div><div class="vig"></div><div class="scrim"></div>`;
+  return bd;
+}
+
+/* ---------- Reel ---------- */
+function buildReel(cur, dir) {
+  let html = "";
+  for (let k = -SPAN; k <= SPAN; k++) {
+    const d = D(cur + k), full = k === 0 || k === dir;
+    const z = (1 + rnd(k * 7 + cur) * .9).toFixed(2), o = Math.round(rnd(k * 13 + cur) * 100);
+    const img = full
+      ? `<img class="full" src="${frame(d)}" alt="">`
+      : `<img src="${still(d)}" alt="" style="--z:${z};--o:${o}%;object-position:${o}% 50%">`;
+    html += `<div class="sl${k === 0 ? " on lit hold" : ""}" data-k="${k}" style="--side:${Math.sign(k)};--dist:${Math.abs(k)}">${img}</div>`;
+  }
+  reel.innerHTML = `<div class="reel__row">${html}</div>`;
+  centerOn(0);
+}
+function centerOn(kOn) {
+  const row = reel.firstElementChild; if (!row) return;
+  const left = (kOn + SPAN) * (SW + GAP);           /* every slit before the lit one is narrow */
+  row.style.transform = `translateX(${960 - left - AW / 2}px)`;
+}
+
+/* ---------- Show / transition ---------- */
+let curBd = null, timers = [], busy = false;
+const later = (ms, fn) => timers.push(setTimeout(fn, ms));
+function settle() {
+  timers.forEach(clearTimeout); timers = [];
+  reel.className = "reel"; reel.innerHTML = "";
+  bds.querySelectorAll(".bd").forEach((b) => { if (b !== curBd) b.remove(); });
+  if (curBd) curBd.className = "bd";
+  copyHost.querySelectorAll(".copy.out").forEach((c) => c.remove());
+  busy = false;
+}
+
+function show(i, prev, dir = 1) {
+  const d = D(i);
+  const oldCopy = copyHost.querySelector(".copy:not(.out)");
+  copyHost.insertAdjacentHTML("beforeend", copyHtml(d));
+  const c = copyHost.lastElementChild;
+  const reveal = () => requestAnimationFrame(() => c.classList.add("is-in"));
+
+  if (prev === undefined) {
+    curBd = makeBd(d); bds.append(curBd); K.syncVideos(curBd);
+    later(250, reveal); later(500, () => setPeek(i));
+    focus && focus.refresh(); return;
+  }
+
+  /* A press mid-transition: land the current one, then cut quickly to the new title */
+  if (busy) {
+    settle();
+    const old = curBd; curBd = makeBd(d); curBd.style.opacity = 0; bds.append(curBd); K.syncVideos(curBd);
+    requestAnimationFrame(() => { curBd.style.transition = "opacity .35s"; curBd.style.opacity = 1; });
+    later(380, () => old && old.remove());
+    if (oldCopy) oldCopy.remove();
+    copyHost.querySelectorAll(".copy").forEach((x) => { if (x !== c) x.remove(); });
+    reveal(); setPeek(i); focus && focus.refresh(); return;
+  }
+
+  busy = true;
+  const old = curBd;
+  if (oldCopy) { oldCopy.classList.add("out"); later(600, () => oldCopy.remove()); }
+  const pk = pkHost.firstElementChild; if (pk) pk.classList.add("out");
+
+  /* 1 · picture closes to the slit and greys out; the reel gathers round it */
+  buildReel(prev, dir);
+  requestAnimationFrame(() => requestAnimationFrame(() => { old.classList.add("close"); reel.classList.add("in"); }));
+  const lit = () => reel.querySelector('.sl[data-k="0"]'), nxt = () => reel.querySelector(`.sl[data-k="${dir}"]`);
+
+  /* 2 · swap the closed picture for its slit, then glide one step and light the next */
+  later(700, () => {
+    const s = lit(); if (s) s.classList.remove("hold");
+    old.classList.add("fade"); later(260, () => old.remove());
+    later(60, () => {
+      reel.firstElementChild.classList.add("glide");
+      lit().classList.remove("on", "lit");
+      nxt().classList.add("on");
+      centerOn(dir);
+    });
+  });
+
+  /* 3 · the lit slit opens out to full bleed, the rest of the reel parts and falls away */
+  later(1560, () => {
+    curBd = makeBd(d); curBd.classList.add("open0"); bds.append(curBd); K.syncVideos(curBd);
+    nxt().classList.add("on");
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      curBd.classList.add("open"); reel.classList.add("out");
+    }));
+    later(700, reveal);
+    later(1000, () => { curBd.classList.remove("open0", "open"); reel.className = "reel"; reel.innerHTML = ""; busy = false; setPeek(i); });
+  });
+
+  focus && focus.refresh();
+}
+
+let focus = null;
+K.rot = K.Rotator({
+  count: N, minGap: 700,
+  durationFor: (i) => K.data[i].dwell || 8000,
+  onChange: (i, prev, dir) => show(i, prev, dir),
+  onTick: (p) => { const s = pkHost.querySelector(".pk:not(.out) .n1"); if (s) s.style.setProperty("--p", p.toFixed(4)); },
+});
+focus = HeroFocus.init(K, { ctas: () => [...copyHost.querySelectorAll(".copy:not(.out) .btn")] });
+show(0);
+K.refreshHud();
+</script>
+</body>
+</html>
