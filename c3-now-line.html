@@ -17,7 +17,7 @@
   /* NOW hairline runs the full height — the hero is anchored to the present */
   .now { position: absolute; z-index: 4; top: 128px; bottom: 120px; width: 0; border-left: 2px dashed rgba(255,255,255,.28); }
   .now__tag { position: absolute; top: 0; left: 10px; white-space: nowrap; font: 800 16px/1 var(--f-ui); letter-spacing: .14em; color: #fff; display: flex; gap: 10px; align-items: center; }
-  .now__tag i { width: 9px; height: 9px; border-radius: 50%; background: var(--live-hot); animation: pulse 1.6s infinite; }
+  .now__tag i { width: 9px; height: 9px; border-radius: 50%; background: var(--live-hot); animation: pulse 2.8s ease-in-out infinite; }
   .now__tag span { color: var(--ink-3); letter-spacing: .04em; font-weight: 600; }
 
   .meta-host { position: absolute; z-index: 6; left: 120px; top: 176px; width: 760px; }
@@ -43,7 +43,7 @@
   .tc { position: absolute; top: 712px; width: 264px; transition: transform .5s var(--ease-out), opacity .3s; opacity: .62; transform-origin: 50% 100%; }
   .tc.on { opacity: 1; transform: translateY(-14px); }
   .tc__when { font: 800 15px/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-  .tc__when i { width: 8px; height: 8px; border-radius: 50%; background: var(--live-hot); animation: pulse 1.6s infinite; }
+  .tc__when i { width: 8px; height: 8px; border-radius: 50%; background: var(--live-hot); animation: pulse 2.8s ease-in-out infinite; }
   .tc[data-type="live"] .tc__when { color: #ff5a6e; }
   .tc__img { position: relative; height: 148px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
   .tc__img::after { content: ""; position: absolute; inset: 0; border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); transition: box-shadow .3s; }

@@ -115,20 +115,19 @@ body.native .stage { transform: translate(-50%, -50%) scale(1); }
 .stage.at-rail::after { content: ""; position: absolute; inset: 0; z-index: 149; background: rgba(0,0,0,.45); pointer-events: none; }
 
 /* ---------- Focus states (TV D-pad) ---------- */
-.fo-nav__item, .fo-nav__profile { transition: background .2s, color .2s, transform .2s var(--ease-std), box-shadow .2s; }
-.fo-nav__item.is-focused { background: #fff; color: #000; transform: scale(1.06); }
-.fo-nav__profile.is-focused { box-shadow: 0 0 0 4px #fff; transform: scale(1.06); }
-.tile-p { transition: transform .25s var(--ease-std), box-shadow .25s; }
-.tile-p.is-focused { transform: scale(1.06); box-shadow: 0 0 0 4px #fff, 0 18px 40px rgba(0,0,0,.6); z-index: 2; }
-.is-pressed { animation: press .22s var(--ease-std); }
-@keyframes press { 50% { transform: scale(.94); } }
+.fo-nav__item, .fo-nav__profile { transition: background .35s var(--ease-std), color .35s var(--ease-std), box-shadow .35s var(--ease-std); }
+.fo-nav__item.is-focused { background: #fff; color: #000; }
+.fo-nav__profile.is-focused { box-shadow: 0 0 0 4px #fff; }
+.tile-p { transition: box-shadow .35s var(--ease-std); }
+.tile-p.is-focused { box-shadow: 0 0 0 4px #fff, 0 18px 40px rgba(0,0,0,.6); z-index: 2; }
+.is-pressed { }   /* no press pop: motion stays smooth and simple */
 
 /* ---------- Up-next peek (replaces pagination) ---------- */
 .peek { position: absolute; z-index: 30; right: var(--pad); bottom: var(--pad); width: 288px; height: 162px; }
 .peek__in { position: absolute; inset: 0; border-radius: var(--r-tile); overflow: hidden; background: var(--tile-bg); box-shadow: 0 12px 34px rgba(0,0,0,.5), inset 0 0 0 1.5px rgba(255,255,255,.18); }
-.peek__card { position: absolute; inset: 0; opacity: 0; transform: translateX(40px); transition: opacity .5s var(--ease-std), transform .6s var(--ease-out); }
+.peek__card { position: absolute; inset: 0; opacity: 0; transform: translateX(16px); transition: opacity .8s var(--ease-std), transform .9s var(--ease-out); }
 .peek__card.in { opacity: 1; transform: none; }
-.peek__card.out { opacity: 0; transform: translateX(-40px); }
+.peek__card.out { opacity: 0; transform: translateX(-16px); }
 .peek__card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.65), rgba(0,0,0,0) 60%); }
 .peek__art { width: 100%; height: 100%; object-fit: cover; }
 .peek__logo { position: absolute; z-index: 1; left: 16px; bottom: 18px; max-width: 150px; max-height: 52px; object-fit: contain; object-position: left bottom; }
@@ -196,14 +195,14 @@ body.native .stage { transform: translate(-50%, -50%) scale(1); }
   background: var(--chip); color: #fff;
 }
 .badge--live { background: var(--live); }
-.badge--live .dot, .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: pulse 1.6s ease-in-out infinite; }
+.badge--live .dot, .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: pulse 2.8s ease-in-out infinite; }
 .badge--new { background: #fff; color: #000; }
 .badge--premiere { background: linear-gradient(90deg, #c9a24b, #f3d98b); color: #1b1400; }
 .badge--spec { background: var(--chip); }
 .badge--outline { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ring); }
 /* Tile badge: template "Live" chip on tiles (30h, r6, 18px sentence case) */
 .badge--tile { height: 30px; padding: 0 10px; border-radius: var(--r-chip); font: 600 18px/1 var(--f-ui); letter-spacing: 0; text-transform: none; }
-@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }   /* slow breathe, no scale pop */
 
 /* Title: logo art when supplied, else condensed display type */
 .logo { display: block; transform-origin: left bottom; }
@@ -222,7 +221,7 @@ body.native .stage { transform: translate(-50%, -50%) scale(1); }
 .social { display: flex; align-items: center; gap: 10px; font: 400 var(--t-body)/1.35 var(--f-ui); color: var(--ink-2); max-width: 620px; }
 .social .ico { flex: 0 0 auto; width: 22px; height: 22px; display: grid; place-items: center; }
 .social .ico svg { width: 22px; height: 22px; fill: currentColor; opacity: .9; }
-.social .ico--live { width: 10px; height: 10px; border-radius: 50%; background: var(--live-hot); animation: pulse 1.6s ease-in-out infinite; }
+.social .ico--live { width: 10px; height: 10px; border-radius: 50%; background: var(--live-hot); }
 .status-row { display: flex; align-items: center; gap: 12px; }
 
 /* Buttons: primary = white 60h r10; secondary = 60 round with ring */
@@ -230,11 +229,11 @@ body.native .stage { transform: translate(-50%, -50%) scale(1); }
 .btn {
   height: var(--ctl-h); padding: 0 34px 0 28px; border-radius: var(--r-ctl); display: inline-flex; align-items: center; gap: 14px;
   font: 600 var(--t-btn)/1 var(--f-ui); background: var(--btn-2); color: #fff; white-space: nowrap;
-  transition: transform .25s var(--ease-std), background .25s, color .25s, box-shadow .25s;
+  transition: background .35s var(--ease-std), color .35s var(--ease-std), box-shadow .35s var(--ease-std);
 }
 .btn svg { width: 24px; height: 24px; fill: currentColor; }
 .btn svg.st, svg.st { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.btn.is-focused { background: #fff; color: #000; transform: scale(1.04); box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+.btn.is-focused { background: #fff; color: #000; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
 .btn--sq, .btn--round {
   width: var(--ctl-h); padding: 0; justify-content: center; border-radius: 50%;
   background: rgba(0,0,0,.12); box-shadow: inset 0 0 0 2px var(--ring);
@@ -264,12 +263,12 @@ body.native .stage { transform: translate(-50%, -50%) scale(1); }
 .countdown__u small { font-size: 12px; font-weight: 600; letter-spacing: .1em; color: var(--ink-3); margin-top: 4px; }
 
 /* ---------- Stagger-in helper (used by most options) ---------- */
-.stagger > * { opacity: 0; transform: translateY(26px); }
+.stagger > * { opacity: 0; transform: translateY(14px); }
 .is-active .stagger > * {
-  animation: rise .75s var(--ease-out) both;
+  animation: rise .9s var(--ease-out) both;
   animation-delay: calc(var(--delay, 280ms) + var(--i, 0) * 70ms);
 }
-@keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
 /* ---------- Overlays: safe zones + grid ---------- */
 .overlay { position: absolute; inset: 0; z-index: 250; pointer-events: none; display: none; }

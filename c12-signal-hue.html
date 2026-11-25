@@ -42,18 +42,11 @@
   .vt .vs { font-style: normal; font-weight: 600; font-size: .4em; letter-spacing: -.01em; margin: 0 .12em 0 .04em; }
   .vt .ch { display: inline-block; transform-origin: 50% 60%; backface-visibility: visible; opacity: 0; }
   .vt .sp { display: inline-block; width: .22em; }
-  .is-in .vt .ch { animation: flipIn .9s var(--ease-out) both; animation-delay: calc(380ms + var(--j) * 46ms); }
-  @keyframes flipIn {
-    0% { opacity: 0; transform: rotateY(180deg) translateY(.12em); }
-    18% { opacity: 1; }
-    62% { transform: rotateY(-14deg); }
-    100% { opacity: 1; transform: none; }
-  }
-  .out .vt .ch { animation: flipOut .45s var(--ease-inout) both; animation-delay: calc(var(--j) * 22ms); }
-  @keyframes flipOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: rotateY(-180deg); } }
+  .is-in .vt .ch { animation: chIn 1s var(--ease-out) both; animation-delay: calc(380ms + var(--j) * 18ms); }
+  @keyframes chIn { from { opacity: 0; transform: translateY(.06em); } to { opacity: 1; transform: none; } }
+  .out .vt .ch { animation: chOut .5s var(--ease-std) both; }
+  @keyframes chOut { from { opacity: 1; } to { opacity: 0; } }
   .copy.settled .vt .ch { opacity: 1; animation: none; }
-  .copy.settled .vt .ch.blink { animation: blink 1.1s var(--ease-inout) both; }
-  @keyframes blink { 0% { transform: none; } 45%, 55% { transform: rotateY(180deg); } 100% { transform: rotateY(360deg); } }
 
   .meta, .tagline { color: var(--h); }
   .meta .badge--spec { background: transparent; color: var(--h); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--h) 70%, transparent); }
@@ -193,13 +186,6 @@ function show(i, prev, dir = 1) {
   focus && focus.refresh();
 }
 
-/* Idle life: every few seconds one letter of the title flips through its mirror image */
-setInterval(() => {
-  const chs = [...copyHost.querySelectorAll(".copy.settled .vt .ch")]; if (!chs.length || (K.rot && K.rot.paused && K.zone !== "hero")) return;
-  const el = chs[Math.floor(Math.random() * chs.length)];
-  el.classList.remove("blink"); void el.offsetWidth; el.classList.add("blink");
-  setTimeout(() => el.classList.remove("blink"), 1150);
-}, 2600);
 
 let focus = null;
 K.rot = K.Rotator({
