@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C14 · Strip Wave — Fox One Multi-Hero</title>
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  /* Built frame by frame from Mason's reference clip.
+     Rest: a full-bleed picture with a light two-line title bottom-left, a small label + meta beside it, and an
+     "up next" cluster of thumbnails on the right. Advance: the picture closes down into one slice of a grey
+     film strip; a soft wave runs along the strip (slices swell and take on colour as it passes) to the next
+     title's slice, the strip parts to both sides and that slice opens back out to full bleed. Type tracks in
+     letter by letter. */
+  .stage { background: #121212; }
+
+  /* ---------- Full-bleed picture ---------- */
+  .bd { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
+  .bd.top { z-index: 3; }
+  .bd .art { position: absolute; inset: 0; }
+  .bd .art > * { width: 100%; height: 100%; object-fit: cover; }
+  .bd .scrim { position: absolute; inset: 0; transition: opacity .9s var(--ease-std); background:
+      linear-gradient(0deg, rgba(0,0,0,.78) 0%, rgba(0,0,0,.3) 30%, rgba(0,0,0,0) 52%),
+      linear-gradient(90deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,0) 42%),
+      linear-gradient(270deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.18) 30%, rgba(0,0,0,0) 46%),
+      linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,0) 18%); }
+  .bd.bare .scrim { opacity: 0; }
+
+  /* ---------- The strip (transition only; never focusable) ---------- */
+  .strip { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .sv { position: absolute; overflow: hidden; background: #1c1c1c; border-radius: 2px; }
+  .sv > img, .sv > canvas { position: absolute; display: block; }
+  .sv > img.crop { inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--o) 50%; transform: scale(var(--z)); transform-origin: var(--o) 50%; }
+  .sv > .win { left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+
+  /* ---------- Lockup: light two-line title, label + meta beside it, CTAs ---------- */
+  .copy { position: absolute; z-index: 20; left: 120px; bottom: 150px; display: flex; flex-direction: column; align-items: flex-start; }
+  .row1 { display: flex; align-items: flex-end; gap: 56px; }
+  .ttl { font: 400 100px/1.02 var(--f-ui); letter-spacing: -.02em; color: #fff; white-space: nowrap; text-shadow: 0 4px 40px rgba(0,0,0,.3); }
+  .ttl .ln { display: block; }
+  .ch { display: inline-block; opacity: 0; }
+  .sp { display: inline-block; width: .24em; }
+  .side { padding-bottom: 16px; opacity: 0; }
+  .lab { font: 400 21px/1.2 var(--f-ui); color: var(--ink-3); margin-bottom: 12px; white-space: nowrap; }
+  .copy .ctas { margin-top: 44px !important; opacity: 0; }
+
+  .copy.is-in .ttl .ln { animation: track 1.5s var(--ease-out) both; animation-delay: calc(var(--l) * 160ms); }
+  @keyframes track { from { letter-spacing: .3em; } to { letter-spacing: -.02em; } }
+  .copy.is-in .ch { animation: chIn 1s var(--ease-out) both; animation-delay: calc(var(--j) * 42ms); }
+  @keyframes chIn { from { opacity: 0; filter: blur(8px); } to { opacity: 1; filter: blur(0); } }
+  .copy.is-in .side { animation: fadeIn .9s .55s var(--ease-std) both; }
+  .copy.is-in .ctas { animation: rise .9s .7s var(--ease-out) both; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .copy.out { transition: opacity .4s var(--ease-std), filter .4s var(--ease-std); opacity: 0; filter: blur(6px); }
+  .copy.out .ch, .copy.out .side, .copy.out .ctas { opacity: 1; animation: none; }
+
+  /* ---------- Peek: "up next" heading + three thumbnails on the right. Never focusable. ---------- */
+  .pk { position: absolute; z-index: 22; right: 120px; top: 446px; width: 523px; }
+  .pk__h { display: flex; flex-direction: column; margin-bottom: 22px; }
+  .pk__k { font: 500 20px/1.2 var(--f-ui); color: var(--ink-3); opacity: 0; }
+  .pk__t { font: 700 27px/1.25 var(--f-ui); color: #fff; letter-spacing: -.005em; white-space: nowrap; }
+  .pk__row { display: flex; gap: 17px; }
+  .pk__th { position: relative; width: 163px; height: 133px; border-radius: var(--r-tile); overflow: hidden; background: var(--tile-bg); opacity: 0;
+            box-shadow: 0 14px 36px rgba(0,0,0,.45); }
+  .pk__th img { width: 100%; height: 100%; object-fit: cover; }
+  .pk__th .badge { position: absolute; left: 10px; top: 10px; }
+  .pk.is-in .pk__k { animation: fadeIn .8s .2s var(--ease-std) both; }
+  .pk.is-in .pk__t .ch { animation: chIn .9s var(--ease-out) both; animation-delay: calc(250ms + var(--j) * 30ms); }
+  .pk.is-in .pk__th { animation: thIn .9s var(--ease-out) both; animation-delay: calc(500ms + var(--n) * 130ms); }
+  @keyframes thIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+  .pk.out { transition: opacity .35s var(--ease-std); opacity: 0; }
+  .pk.out .ch, .pk.out .pk__k, .pk.out .pk__th { opacity: 1; animation: none; }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage">
+  <div id="bds"></div>
+  <div class="strip" id="strip"></div>
+  <div id="copyHost"></div>
+  <div id="pkHost"></div>
+</div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/art.js"></script>
+<script src="shared/stage.js"></script>
+<script src="shared/hero-focus.js"></script>
+<script>
+const K = HeroKit.init({
+  title: "C14 · Strip Wave",
+  notes: "Rebuilt from the reference clip. At rest: full-bleed picture, light two-line title bottom-left with a small label and meta beside it, and an up-next heading with three thumbnails on the right. → past the last button: the picture closes into one slice of a grey film strip, a soft wave runs along the strip (slices swell and take on colour as it passes) to the next title's slice, the strip parts and that slice opens to full bleed. Letters track in. No auto-advance.",
+  extraKeys: [["→ past +", "Next title through the strip"], ["← past Watch", "Previous title"]],
+});
+
+const N = K.data.length, stage = K.stage;
+const bds = document.getElementById("bds"), strip = document.getElementById("strip");
+const copyHost = document.getElementById("copyHost"), pkHost = document.getElementById("pkHost");
+const D = (v) => K.data[((v % N) + N) % N];
+const still = (d) => d.art.kind === "video" ? (d.art.still || d.art.poster) : d.art.src;
+const alt = (d) => d.art.kind === "video" ? (d.art.poster || d.art.still) : d.art.src;
+const frame = (d) => d.art.kind === "video" ? d.art.poster : d.art.src;        /* what the full-bleed picture opens on */
+const fx = (d) => d.focusX ?? .5;
+/* Strip frames pulled from each title's own trailer (assets/c14), with where the subject sits */
+const FR = (id, list) => list.map(([n, x]) => [`assets/c14/${id}-${n}.jpg`, x]);
+const FRAMES = {
+  "eagles-cowboys": FR("eagles-cowboys", [[3, 12], [7, 30], [5, 86], [8, 50], [2, 62]]),
+  "best-medicine":  FR("best-medicine", [[2, 66], [3, 26], [5, 56], [7, 46], [8, 52]]),
+  "accused":        FR("accused", [[2, 62], [4, 40], [1, 14], [9, 64]]),
+  "fc-juarez":      FR("fc-juarez", [[5, 72], [8, 30], [10, 52], [1, 36]]),
+  "fox-soul":       FR("fox-soul", [[1, 30], [3, 58], [2, 42], [1, 78]]),     // its key art with the wordmark set large
+};
+const rnd = (s) => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+/* Typeset titles (Inter), as in the reference */
+const LINES = { "eagles-cowboys": ["Eagles vs", "Cowboys"], "best-medicine": ["Best", "Medicine"], "accused": ["Accused"], "fc-juarez": ["FC Juárez"], "fox-soul": ["FOX Soul"] };
+const lines = (d) => LINES[d.id] || [d.logoAlt || d.id];
+const chars = (t, base = 0) => [...t].map((c, k) => c === " " ? `<span class="sp"></span>` : `<span class="ch" style="--j:${base + k}">${c}</span>`).join("");
+
+/* ---------- Easing + cancellable tweens ---------- */
+const EIO = (p) => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+const EOUT = (p) => 1 - Math.pow(1 - p, 4);
+let run = 0;
+function tween(ms, fn, ease = EIO) {
+  const tok = run;
+  return new Promise((res) => {
+    const t0 = performance.now();
+    (function step(now) {
+      if (tok !== run) return;
+      const p = Math.min(1, (now - t0) / ms); fn(ease(p));
+      if (p < 1) requestAnimationFrame(step); else res();
+    })(t0);
+  });
+}
+const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/* ---------- Strip ----------
+   Five titles × three slices. The middle slice of each title is a "window" onto that title's full-bleed frame,
+   so the picture can close into it and open out of it without a seam. A gaussian wave at position f swells
+   the slices near it (taller, a little wider, brighter, in colour); the rest stay grey at their own tone. */
+const BW = 112, FW = 150, GAP = 14, BH = 404, FH = 572, CY = 536, SIG = 1.05, PER = 3, SPAN = 2;
+const CI = SPAN * PER + 1;                        // the current title's window slice
+let S = [], x0 = 0;
+
+let spin = 0;                                     // varies which trailer frames show on each pass
+function buildStrip(cur, frozen) {
+  S = []; let html = ""; spin++;
+  for (let t = -SPAN; t <= SPAN; t++) {
+    const d = D(cur + t);
+    for (let j = 0; j < PER; j++) {
+      const seed = ((cur + t) % N + N) * 11 + j * 5 + (t + 9) * 3, win = j === 1;
+      const s = { d, win, bh: BH + (rnd(seed) * 2 - 1) * 28, bw: BW + (rnd(seed + 4) * 2 - 1) * 9, b: .66 + rnd(seed + 1) * .34 };
+      S.push(s);
+      let src, o, z = 1;
+      const fl = FRAMES[d.id];
+      if (win) {} else if (fl) { [src, o] = fl[(j / 2 + ((cur + t) % N + N) * 2 + spin) % fl.length]; }
+      else { src = j === 0 ? still(d) : alt(d); o = Math.round(15 + rnd(seed + 2) * 70); z = (1.1 + rnd(seed + 3) * .6).toFixed(2); }
+      html += `<div class="sv">${win
+        ? (t === 0 && frozen ? "" : `<img class="win" src="${frame(d)}" alt="" style="object-position:${Math.round(fx(d) * 100)}% 50%">`)
+        : `<img class="crop" src="${src}" alt="" style="--o:${o}%;--z:${z}">`}</div>`;
+    }
+  }
+  strip.innerHTML = html;
+  [...strip.children].forEach((el, i) => (S[i].el = el));
+  if (frozen) { S[CI].el.append(frozen); frozen.classList.add("win"); }
+  const L = layout(CI); x0 = 960 - (L[CI].x + L[CI].w / 2);
+}
+
+function layout(f) {
+  let x = 0;
+  return S.map((s, i) => {
+    const g = Math.exp(-((i - f) ** 2) / (2 * SIG * SIG));
+    const w = s.bw + (FW - s.bw) * g, h = s.bh + (FH - s.bh) * g, r = { x, y: CY - h / 2, w, h, g };
+    x += w + GAP; return r;
+  });
+}
+const rectAt = (f, i) => { const r = layout(f)[i]; return { x: r.x + x0, y: r.y, w: r.w, h: r.h }; };
+
+/* o.enter: 0→1 slices arrive (from both sides, or from the right on load); o.part: 0→1 they leave to both sides;
+   o.hide: a slice index kept invisible; o.keep: the slice that does not part */
+function render(f, o = {}) {
+  const L = layout(f);
+  S.forEach((s, i) => {
+    const r = L[i], el = s.el, side = Math.sign(i - (o.keep ?? CI));
+    let tx = 0, op = 1;
+    if (o.enter != null) {
+      const e = Math.min(1, Math.max(0, o.enter * 1.25 - Math.abs(i - CI) * .025));
+      tx += (o.fromRight ? 1500 : side * 820) * (1 - EOUT(e)); op *= Math.min(1, e * 1.6);
+    }
+    if (o.part != null) { tx += side * 980 * o.part; op *= side ? 1 - Math.max(0, o.part - .25) / .75 : 1; }
+    if (o.hide === i) op = 0;
+    const x = x0 + r.x + tx;
+    el.style.cssText = `left:${x.toFixed(1)}px;top:${r.y.toFixed(1)}px;width:${r.w.toFixed(1)}px;height:${r.h.toFixed(1)}px;opacity:${op.toFixed(3)};` +
+      `filter:grayscale(${(1 - r.g ** 2.2).toFixed(3)}) brightness(${(s.b + (1 - s.b) * r.g).toFixed(3)}) contrast(1.1)`;
+    if (s.win) { const w = el.firstElementChild; if (w) w.style.transform = `translate(${(-x).toFixed(1)}px,${(-r.y).toFixed(1)}px)`; }
+  });
+}
+
+/* clip a full-bleed layer to rect R by amount p (0 = full screen, 1 = exactly R) */
+function clipTo(el, R, p) {
+  el.style.clipPath = `inset(${(R.y * p).toFixed(1)}px ${((1920 - R.x - R.w) * p).toFixed(1)}px ${((1080 - R.y - R.h) * p).toFixed(1)}px ${(R.x * p).toFixed(1)}px round ${(2 * p).toFixed(1)}px)`;
+}
+
+/* Freeze the playing frame onto a canvas (cover-fit, same focus) so the picture becomes its slice seamlessly */
+function freeze(bd, d) {
+  const v = bd.querySelector("video");
+  if (!v || v.readyState < 2 || !v.videoWidth) return null;
+  const c = document.createElement("canvas"); c.width = 1920; c.height = 1080;
+  const s = Math.max(1920 / v.videoWidth, 1080 / v.videoHeight), w = v.videoWidth * s, h = v.videoHeight * s;
+  try { c.getContext("2d").drawImage(v, (1920 - w) * fx(d), (1080 - h) / 2, w, h); } catch (e) { return null; }
+  return c;
+}
+
+/* ---------- Lockup + peek ---------- */
+function copyHtml(d) {
+  let j = 0;
+  const ttl = lines(d).map((l, n) => { const h = `<span class="ln" style="--l:${n}">${chars(l, j)}</span>`; j += l.length + 2; return h; }).join("");
+  return `<div class="copy"><div class="row1"><div class="ttl" aria-label="${d.logoAlt}">${ttl}</div>
+    <div class="side">${d.tagline ? `<div class="lab">${d.tagline}</div>` : ""}${K.ui.metaRow(d)}</div></div>${K.ui.ctas(d)}</div>`;
+}
+function copyIn(d) {
+  copyHost.querySelectorAll(".copy").forEach((c) => c.remove());
+  copyHost.insertAdjacentHTML("beforeend", copyHtml(d));
+  const c = copyHost.lastElementChild; requestAnimationFrame(() => requestAnimationFrame(() => c.classList.add("is-in")));
+  focus && focus.refresh();
+}
+function copyOut() { const c = copyHost.querySelector(".copy:not(.out)"); if (c) { c.classList.add("out"); setTimeout(() => c.remove(), 450); } }
+
+function peekIn(i) {
+  const a = D(i + 1);
+  pkHost.innerHTML = `<div class="pk" aria-hidden="true"><div class="pk__h"><span class="pk__k">Up next</span><span class="pk__t">${chars(lines(a).join(" "))}</span></div>
+    <div class="pk__row">${[1, 2, 3].map((n) => { const d = D(i + n); return `<div class="pk__th" style="--n:${n - 1}"><img src="${still(d)}" alt="" style="object-position:${Math.round(fx(d) * 100)}% 50%">${d.type === "live" ? K.ui.badge(d, { tile: true }) : ""}</div>`; }).join("")}</div></div>`;
+  const el = pkHost.firstElementChild; requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("is-in")));
+}
+function peekOut() { const p = pkHost.firstElementChild; if (p) { p.classList.add("out"); setTimeout(() => p.remove(), 400); } }
+
+function makeBd(d) {
+  const bd = document.createElement("div"); bd.className = "bd";
+  bd.innerHTML = `<div class="art">${K.art(d)}</div><div class="scrim"></div>`;
+  return bd;
+}
+
+/* ---------- Choreography ---------- */
+let curBd = null, busy = false;
+
+/* open slice `ni` of the strip to full bleed as title i, the rest of the strip parting to both sides */
+async function openFrom(ni, i) {
+  const tok = run, d = D(i), R = rectAt(ni, ni);
+  const nb = makeBd(d); nb.classList.add("top", "bare"); clipTo(nb, R, 1);
+  bds.append(nb); K.syncVideos(nb);
+  setTimeout(() => { if (tok === run) { copyIn(d); } }, 720);
+  setTimeout(() => { if (tok === run) peekIn(i); }, 1100);
+  await tween(1050, (p) => { clipTo(nb, R, 1 - p); render(ni, { part: p, keep: ni }); });
+  if (tok !== run) return;
+  nb.style.clipPath = ""; nb.classList.remove("top", "bare");
+  bds.querySelectorAll(".bd").forEach((b) => b !== nb && b.remove());
+  curBd = nb; strip.innerHTML = ""; S = []; busy = false;
+}
+
+async function intro() {
+  run++; busy = true;
+  buildStrip(0, null);
+  render(CI - 4, { enter: 0, fromRight: true });
+  await tween(1100, (p) => render(CI - 4, { enter: p, fromRight: true }), (p) => p);
+  await tween(1400, (p) => render(CI - 4 + 4 * p));
+  await pause(150);
+  await openFrom(CI, 0);
+}
+
+async function advance(i, prev, dir) {
+  const tok = ++run; busy = true;
+  copyOut(); peekOut();
+  const old = curBd, ni = CI + dir * PER;
+  buildStrip(prev, freeze(old, D(prev)));
+  const R = rectAt(CI, CI);
+  old.classList.add("top", "bare");
+  render(CI, { enter: 0, hide: CI });
+  /* 1 · the picture closes down into its slice while the strip gathers in behind it */
+  await tween(1000, (p) => { clipTo(old, R, p); render(CI, { enter: p, hide: CI }); });
+  if (tok !== run) return;
+  render(CI); old.remove();
+  /* 2 · the wave runs along the strip to the next title's slice */
+  await tween(1250, (p) => render(CI + (ni - CI) * p));
+  if (tok !== run) return;
+  await pause(120);
+  if (tok !== run) return;
+  /* 3 · that slice opens to full bleed */
+  await openFrom(ni, i);
+}
+
+/* A press while a transition is running: drop the strip and cross-fade straight to the new title */
+function cut(i) {
+  run++;
+  strip.innerHTML = ""; S = [];
+  const olds = [...bds.children], d = D(i), nb = makeBd(d);
+  nb.style.opacity = 0; bds.append(nb); K.syncVideos(nb); curBd = nb;
+  requestAnimationFrame(() => { nb.style.transition = "opacity .6s var(--ease-std)"; nb.style.opacity = 1; });
+  setTimeout(() => { olds.forEach((o) => o.remove()); nb.style.transition = ""; }, 650);
+  copyIn(d); peekIn(i); busy = false;
+}
+
+function show(i, prev, dir = 1) {
+  if (prev === undefined) { intro(); return; }
+  if (busy) return cut(i);
+  advance(i, prev, dir);
+}
+
+let focus = null;
+K.rot = K.Rotator({
+  count: N, minGap: 400,
+  durationFor: () => Infinity,          // stays on the title until → past the last button
+  onChange: (i, prev, dir) => show(i, prev, dir),
+});
+focus = HeroFocus.init(K, { ctas: () => [...copyHost.querySelectorAll(".copy:not(.out) .btn")] });
+show(0);
+K.refreshHud && K.refreshHud();
+</script>
+</body>
+</html>
