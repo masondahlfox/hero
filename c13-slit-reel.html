@@ -5,86 +5,47 @@
 <title>C13 · Slit Reel — Fox One Multi-Hero</title>
 <link rel="stylesheet" href="shared/base.css">
 <style>
-  /* Cinematic, quiet, black-and-white until it matters. Between titles the picture closes down to a thin
-     vertical slit and becomes one frame in a reel of grey slits. The reel glides one step, the next title's
-     slit takes on colour, then opens back out to full bleed. At rest, the next titles wait as slits on the
-     right edge, the nearest one in colour. No auto-advance, no countdown. */
+  /* A scrolling bookshelf of slits. The focused title is always open as a wide panel INSIDE the shelf,
+     with grey slits on both sides, so moving between titles is one short accordion step: the open panel
+     narrows back into a slit while the next slit widens into the panel and the shelf slides one place.
+     It never leaves for full screen. The next title (right of the panel) shows in colour as the peek. */
   .stage { background: #0c0c0c; }
 
-  /* ---------- Full-bleed picture ---------- */
-  .bd { position: absolute; inset: 0; z-index: 1; overflow: hidden; clip-path: inset(0px 0px 0px 0px round 0px); }
-  .bd .art { position: absolute; inset: 0; }
-  .bd .art > * { width: 100%; height: 100%; object-fit: cover; transition: filter .6s var(--ease-std); animation: drift 16s linear both; }
-  @keyframes drift { from { transform: scale(1.06); } to { transform: scale(1.0); } }
-  .bd .scrim { position: absolute; inset: 0; transition: opacity .5s var(--ease-std); background:
-      linear-gradient(90deg, rgba(0,0,0,.78) 0%, rgba(0,0,0,.42) 32%, rgba(0,0,0,0) 60%),
-      linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,0) 18%),
-      linear-gradient(0deg, rgba(0,0,0,.88) 0%, rgba(0,0,0,.3) 26%, rgba(0,0,0,0) 48%); }
-  .bd .vig { position: absolute; inset: 0; background: radial-gradient(130% 100% at 55% 45%, transparent 55%, rgba(0,0,0,.5) 100%); }
-  /* closing down to the slit */
-  .bd.close { transition: clip-path 1s var(--ease-inout); clip-path: var(--slit); }
-  .bd.close .art > * { filter: grayscale(1) brightness(.78) contrast(1.05); }
-  .bd.close .scrim, .bd.close .vig { opacity: 0; }
-  .bd.fade { transition: opacity .5s var(--ease-std); opacity: 0; }
-  /* opening out of the slit */
-  .bd.open0 { clip-path: var(--slit); opacity: 0; }
-  .bd.open0 .scrim, .bd.open0 .vig { opacity: 0; }
-  .bd.open { transition: clip-path 1.3s var(--ease-inout), opacity .4s var(--ease-std); clip-path: inset(0px 0px 0px 0px round 0px); opacity: 1; }
-  .bd.open .scrim, .bd.open .vig { opacity: 1; transition: opacity .7s .45s var(--ease-std); }
+  .shelf { position: absolute; inset: 0; z-index: 2; }
+  .sl { position: absolute; top: 170px; height: 640px; overflow: hidden; border-radius: var(--r-tile); background: #161616;
+        transition: left .8s var(--ease-inout), width .8s var(--ease-inout), opacity .6s var(--ease-std); }
+  .sl.new { opacity: 0; }
+  .sl > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--fx, 50%) 50%;
+              filter: grayscale(1) brightness(.6) contrast(1.06); transition: filter .8s var(--ease-inout); }
+  .sl.next > img, .sl.open > img { filter: none; }
+  /* open panel: the title's video / key art fades in on top once it has opened */
+  .sl .vid { position: absolute; inset: 0; opacity: 0; transition: opacity .7s var(--ease-std); }
+  .sl .vid .art { position: absolute; inset: 0; }
+  .sl.open.live .vid { opacity: 1; }
+  .sl .scrim { position: absolute; inset: 0; opacity: 0; transition: opacity .7s var(--ease-std); background:
+      linear-gradient(90deg, rgba(0,0,0,.8) 0%, rgba(0,0,0,.45) 38%, rgba(0,0,0,0) 66%),
+      linear-gradient(0deg, rgba(0,0,0,.75) 0%, rgba(0,0,0,0) 45%); }
+  .sl.open .scrim { opacity: 1; }
+  .sl .pl { position: absolute; z-index: 2; left: 12px; right: 12px; bottom: 18px; height: 56px; display: flex; align-items: flex-end; justify-content: center; opacity: 0; transition: opacity .6s var(--ease-std); }
+  .sl .pl img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .sl.next .pl { opacity: 1; }
+  .sl .badge { position: absolute; z-index: 2; left: 12px; top: 12px; opacity: 0; transition: opacity .6s var(--ease-std); }
+  .sl.next .badge { opacity: 1; }
 
-  /* ---------- Reel of slits (transition only; never focusable) ---------- */
-  .reel { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-  .reel__row { position: absolute; left: 0; top: 240px; height: 600px; display: flex; gap: 14px; will-change: transform; }
-  .reel__row.glide { transition: transform 1.1s var(--ease-inout); }
-  .sl { position: relative; flex: none; width: 104px; height: 100%; overflow: hidden; background: #1a1a1a; border-radius: 2px;
-        opacity: 0; transform: translateX(calc(var(--side) * 24px)); transition: width 1.1s var(--ease-inout), opacity .7s var(--ease-std), transform .9s var(--ease-out); }
-  .reel.in .sl { opacity: 1; transform: none; transition-delay: 0s, 200ms, 200ms; }
-  .reel.in .sl.hold { opacity: 0; transition: none; }
-  .reel.out .sl:not(.on) { opacity: 0; transform: translateX(calc(var(--side) * 60px)); transition: opacity .8s var(--ease-std), transform 1.1s var(--ease-inout); }
-  .reel.out .sl.on { opacity: 0; transition: opacity .5s .4s var(--ease-std), width 1.1s var(--ease-inout); }
-  .sl img { position: absolute; top: 0; left: 50%; height: 100%; width: auto; min-width: 100%; transform: translateX(-50%) scale(var(--z, 1));
-            transform-origin: var(--o, 50%) 50%; object-fit: cover; filter: grayscale(1) brightness(.62) contrast(1.08); transition: filter 1.1s var(--ease-inout); }
-  .sl img.full { width: 1920px; height: 1080px; top: -240px; min-width: 0; transform: translateX(-50%); }
-  .sl.on { width: 260px; }
-  .sl.on img { filter: none; }
-  .sl.lit img { filter: grayscale(1) brightness(.78) contrast(1.05); }
-
-  /* ---------- Lockup ---------- */
-  .copy { position: absolute; z-index: 20; left: 120px; bottom: 172px; width: 980px; display: flex; flex-direction: column; align-items: flex-start; }
-  .copy > * + * { margin-top: 18px; }
-  .copy .logo img { max-width: 620px; max-height: 200px; }
-  .copy .ctas { margin-top: 34px !important; }
-  .copy > * { opacity: 0; }
-  .copy.is-in > * { animation: rise 1s var(--ease-out) both; }
-  .copy.is-in .meta { animation-delay: .15s; }
-  .copy.is-in .tagline { animation-delay: .25s; }
-  .copy.is-in .ctas { animation-delay: .35s; }
-  .copy.out { transition: opacity .6s var(--ease-std); opacity: 0; }
-  .copy.out > * { opacity: 1; }
-
-  /* ---------- Peek: the next titles as slits on the right edge. Never focusable. ---------- */
-  .pk { position: absolute; z-index: 22; right: 120px; bottom: 172px; height: 440px; display: flex; gap: 12px; align-items: stretch;
-        transition: opacity .8s var(--ease-std), transform 1s var(--ease-out); }
-  .pk.pre { opacity: 0; transform: translateX(20px); }
-  .pk.out { opacity: 0; transition: opacity .5s var(--ease-std); }
-  .pk__s { position: relative; flex: none; overflow: hidden; border-radius: 2px; background: #151515; box-shadow: 0 18px 50px rgba(0,0,0,.5); }
-  .pk__s img.a { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .pk__s img.g { filter: grayscale(1) brightness(.55) contrast(1.08); }
-  .pk__s.n1 { width: 150px; }
-  .pk__s.n2 { width: 56px; opacity: .8; }
-  .pk__s.n3 { width: 28px; opacity: .55; }
-  .pk__s.n1::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.75) 0%, rgba(0,0,0,0) 42%); }
-  .pk__logo { position: absolute; z-index: 2; left: 14px; right: 14px; bottom: 18px; height: 64px; display: flex; align-items: flex-end; justify-content: center; }
-  .pk__logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .pk__s .badge { position: absolute; z-index: 2; left: 10px; top: 10px; }
+  /* Lockup sits inside the open panel */
+  .copy { position: absolute; z-index: 20; left: 508px; bottom: 314px; width: 900px; display: flex; flex-direction: column; align-items: flex-start;
+          opacity: 0; transform: translateY(10px); transition: opacity .6s var(--ease-std), transform .7s var(--ease-out); }
+  .copy.is-in { opacity: 1; transform: none; transition-delay: .35s; }
+  .copy.out { opacity: 0; transform: none; transition: opacity .35s var(--ease-std); transition-delay: 0s; }
+  .copy > * + * { margin-top: 16px; }
+  .copy .logo img { max-width: 480px; max-height: 140px; }
+  .copy .ctas { margin-top: 26px !important; }
 </style>
 </head>
 <body>
 <div class="viewport"><div class="stage" id="stage">
-  <div id="bds"></div>
-  <div class="reel" id="reel"></div>
+  <div class="shelf" id="shelf"></div>
   <div id="copyHost"></div>
-  <div id="pkHost"></div>
   <div class="grain"></div>
 </div></div>
 
@@ -95,151 +56,86 @@
 <script>
 const K = HeroKit.init({
   title: "C13 · Slit Reel",
-  notes: "Cinematic and quiet. On advance the picture closes down to a thin vertical slit and turns grey, becoming one frame in a reel of slits. The reel glides one step, the next title's slit takes on colour and opens back out to full bleed. At rest the next titles wait as slits on the right edge (the nearest in colour). It stays on the current title until you press → past the last button; there is no countdown.",
-  extraKeys: [["→ past +", "Bring the next title into the hero"]],
+  notes: "A scrolling bookshelf of slits. The focused title is open as a wide panel inside the shelf, with grey slits on both sides; the next title, right of the panel, shows in colour as the peek. → past the last button is one short accordion step: the panel narrows into a slit, the next slit widens into the panel and the shelf slides one place. It never goes full screen and never auto-advances.",
+  extraKeys: [["→ past 🔔", "Next title opens in the shelf"]],
 });
 
-const N = K.data.length, stage = K.stage;
-const bds = document.getElementById("bds"), reel = document.getElementById("reel");
-const copyHost = document.getElementById("copyHost"), pkHost = document.getElementById("pkHost");
-const D = (i) => K.data[((i % N) + N) % N];
+const N = K.data.length;
+const shelf = document.getElementById("shelf"), copyHost = document.getElementById("copyHost");
+const D = (v) => K.data[((v % N) + N) % N];
 const still = (d) => d.art.kind === "video" ? (d.art.still || d.art.poster) : d.art.src;
-const frame = (d) => d.art.kind === "video" ? (d.art.poster || d.art.still) : d.art.src;   /* what the video opens on */
-const pos = (d) => `${Math.round((d.focusX ?? .5) * 100)}% 50%`;
 
-/* Reel geometry (stage px): slits 104 wide, the lit one 260, 600 tall, centred on the stage */
-const SW = 104, AW = 260, GAP = 14, SH = 600, TOP = 240, SPAN = 9;
-const SLIT = `inset(${TOP}px ${(1920 - AW) / 2}px ${1080 - TOP - SH}px ${(1920 - AW) / 2}px round 2px)`;
-stage.style.setProperty("--slit", SLIT);
-const rnd = (s) => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
-
-/* ---------- Peek ---------- */
-function peekHtml(i) {
-  const a = D(i + 1), b = D(i + 2), c = D(i + 3);
-  return `<div class="pk pre" aria-hidden="true">
-    <div class="pk__s n1"><img class="a" src="${still(a)}" alt="" style="object-position:${pos(a)}">
-      ${a.type === "live" ? K.ui.badge(a, { tile: true }) : ""}<div class="pk__logo"><img src="${a.logo}" alt=""></div></div>
-    <div class="pk__s n2"><img class="a g" src="${still(b)}" alt="" style="object-position:${pos(b)}"></div>
-    <div class="pk__s n3"><img class="a g" src="${still(c)}" alt="" style="object-position:${pos(c)}"></div></div>`;
-}
-function setPeek(i) {
-  pkHost.innerHTML = peekHtml(i);
-  const el = pkHost.firstElementChild;
-  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove("pre")));
+/* Shelf geometry (stage px): grey slits 96 wide, the open panel 1100, the next (peek) slit 150 */
+const SW = 96, NW = 150, G = 12, PW = 1100, PX = 444, K_MIN = -5, K_MAX = 6;
+function geo(k) {                       // k = slot relative to the open title
+  if (k === 0) return [PX, PW];
+  if (k < 0) return [PX + k * (SW + G), SW];
+  if (k === 1) return [PX + PW + G, NW];
+  return [PX + PW + G + NW + G + (k - 2) * (SW + G), SW];
 }
 
-/* ---------- Lockup ---------- */
-function copyHtml(d) {
-  return `<div class="copy">${K.ui.title(d)}${K.ui.metaRow(d)}${d.tagline ? `<div class="tagline">${d.tagline}</div>` : ""}${K.ui.ctas(d)}</div>`;
+const els = new Map();                  // virtual index → element
+let v = 0;
+function make(vi, k) {
+  const d = D(vi), el = document.createElement("div");
+  el.className = "sl new"; el.style.setProperty("--fx", Math.round((d.focusX ?? .5) * 100) + "%");
+  el.innerHTML = `<img src="${still(d)}" alt="" draggable="false"><div class="vid"></div><div class="scrim"></div>
+    ${d.type === "live" ? K.ui.badge(d, { tile: true }) : ""}<div class="pl"><img src="${d.logo}" alt=""></div>`;
+  const [x0] = geo(k + (k > 0 ? 1 : -1));            // starts one place further out, then slides in as it fades up
+  el.style.left = x0 + "px"; el.style.width = SW + "px";
+  shelf.append(el); els.set(vi, el); void el.offsetWidth; return el;
 }
-
-function makeBd(d) {
-  const bd = document.createElement("div"); bd.className = "bd";
-  bd.innerHTML = `<div class="art">${K.art(d)}</div><div class="vig"></div><div class="scrim"></div>`;
-  return bd;
-}
-
-/* ---------- Reel ---------- */
-function buildReel(cur, dir) {
-  let html = "";
-  for (let k = -SPAN; k <= SPAN; k++) {
-    const d = D(cur + k), full = k === 0 || k === dir;
-    const z = (1 + rnd(k * 7 + cur) * .9).toFixed(2), o = Math.round(rnd(k * 13 + cur) * 100);
-    const img = full
-      ? `<img class="full" src="${frame(d)}" alt="">`
-      : `<img src="${still(d)}" alt="" style="--z:${z};--o:${o}%;object-position:${o}% 50%">`;
-    html += `<div class="sl${k === 0 ? " on lit hold" : ""}" data-k="${k}" style="--side:${Math.sign(k)};--dist:${Math.abs(k)}">${img}</div>`;
+function layout(instant) {
+  for (let vi = v + K_MIN; vi <= v + K_MAX; vi++) {
+    const k = vi - v, el = els.get(vi) || make(vi, k);
+    if (instant) el.style.transition = "none";
+    const [x, w] = geo(k);
+    el.style.left = x + "px"; el.style.width = w + "px";
+    el.classList.remove("new");
+    el.classList.toggle("next", k === 1);
+    if (instant) { void el.offsetWidth; el.style.transition = ""; }
   }
-  reel.innerHTML = `<div class="reel__row">${html}</div>`;
-  centerOn(0);
-}
-function centerOn(kOn) {
-  const row = reel.firstElementChild; if (!row) return;
-  const left = (kOn + SPAN) * (SW + GAP);           /* every slit before the lit one is narrow */
-  row.style.transform = `translateX(${960 - left - AW / 2}px)`;
-}
-
-/* ---------- Show / transition ---------- */
-let curBd = null, timers = [], busy = false;
-const later = (ms, fn) => timers.push(setTimeout(fn, ms));
-function settle() {
-  timers.forEach(clearTimeout); timers = [];
-  reel.className = "reel"; reel.innerHTML = "";
-  bds.querySelectorAll(".bd").forEach((b) => { if (b !== curBd) b.remove(); });
-  if (curBd) curBd.className = "bd";
-  copyHost.querySelectorAll(".copy.out").forEach((c) => c.remove());
-  busy = false;
-}
-
-function show(i, prev, dir = 1) {
-  const d = D(i);
-  const oldCopy = copyHost.querySelector(".copy:not(.out)");
-  copyHost.insertAdjacentHTML("beforeend", copyHtml(d));
-  const c = copyHost.lastElementChild;
-  const reveal = () => requestAnimationFrame(() => c.classList.add("is-in"));
-
-  if (prev === undefined) {
-    curBd = makeBd(d); bds.append(curBd); K.syncVideos(curBd);
-    later(250, reveal); later(500, () => setPeek(i));
-    focus && focus.refresh(); return;
+  for (const [vi, el] of els) if (vi < v + K_MIN || vi > v + K_MAX) {
+    els.delete(vi); el.classList.add("new");
+    const [x] = geo(vi - v); el.style.left = x + "px";
+    setTimeout(() => el.remove(), 700);
   }
+}
 
-  /* A press mid-transition: land the current one, then cut quickly to the new title */
-  if (busy) {
-    settle();
-    const old = curBd; curBd = makeBd(d); curBd.style.opacity = 0; bds.append(curBd); K.syncVideos(curBd);
-    requestAnimationFrame(() => { curBd.style.transition = "opacity .8s var(--ease-std)"; curBd.style.opacity = 1; });
-    later(850, () => old && old.remove());
-    if (oldCopy) oldCopy.remove();
-    copyHost.querySelectorAll(".copy").forEach((x) => { if (x !== c) x.remove(); });
-    reveal(); setPeek(i); focus && focus.refresh(); return;
+let openEl = null, liveT = 0;
+function open(vi) {
+  if (openEl) {                                         // the old panel drops its video and greys back into a slit
+    const o = openEl; o.classList.remove("open", "live");
+    setTimeout(() => { if (!o.classList.contains("open")) o.querySelector(".vid").innerHTML = ""; }, 800);
   }
-
-  busy = true;
-  const old = curBd;
-  if (oldCopy) { oldCopy.classList.add("out"); later(600, () => oldCopy.remove()); }
-  const pk = pkHost.firstElementChild; if (pk) pk.classList.add("out");
-
-  /* 1 · picture closes to the slit and greys out; the reel gathers round it */
-  buildReel(prev, dir);
-  requestAnimationFrame(() => requestAnimationFrame(() => { old.classList.add("close"); reel.classList.add("in"); }));
-  const lit = () => reel.querySelector('.sl[data-k="0"]'), nxt = () => reel.querySelector(`.sl[data-k="${dir}"]`);
-
-  /* 2 · swap the closed picture for its slit, then glide one step and light the next */
-  later(1000, () => {
-    const s = lit(); if (s) s.classList.remove("hold");
-    old.classList.add("fade"); later(560, () => old.remove());
-    later(80, () => {
-      reel.firstElementChild.classList.add("glide");
-      lit().classList.remove("on", "lit");
-      nxt().classList.add("on");
-      centerOn(dir);
-    });
-  });
-
-  /* 3 · the lit slit opens out to full bleed, the rest of the reel parts and falls away */
-  later(2250, () => {
-    curBd = makeBd(d); curBd.classList.add("open0"); bds.append(curBd); K.syncVideos(curBd);
-    nxt().classList.add("on");
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      curBd.classList.add("open"); reel.classList.add("out");
-    }));
-    later(900, reveal);
-    later(1400, () => { curBd.classList.remove("open0", "open"); reel.className = "reel"; reel.innerHTML = ""; busy = false; setPeek(i); });
-  });
-
-  focus && focus.refresh();
+  const el = openEl = els.get(vi), d = D(vi);
+  el.classList.add("open");
+  el.querySelector(".vid").innerHTML = `<div class="art">${K.art(d)}</div>`;
+  clearTimeout(liveT);
+  liveT = setTimeout(() => { el.classList.add("live"); K.syncVideos(el); }, 500);   // footage fades in as the panel finishes opening
 }
 
 let focus = null;
+function show(i, prev, dir = 1) {
+  if (prev !== undefined) v += dir;
+  layout(prev === undefined);
+  open(v);
+  const old = copyHost.querySelector(".copy:not(.out)");
+  if (old) { old.classList.add("out"); setTimeout(() => old.remove(), 400); }
+  const d = D(v);
+  copyHost.insertAdjacentHTML("beforeend", `<div class="copy">${K.ui.title(d)}${K.ui.metaRow(d)}${d.tagline ? `<div class="tagline">${d.tagline}</div>` : ""}${K.ui.ctas(d)}</div>`);
+  const c = copyHost.lastElementChild; requestAnimationFrame(() => requestAnimationFrame(() => c.classList.add("is-in")));
+  focus && focus.refresh();
+}
+
 K.rot = K.Rotator({
-  count: N, minGap: 700,
-  durationFor: () => Infinity,   // stays on the current title until the viewer presses → past the last button
+  count: N, minGap: 500,
+  durationFor: () => Infinity,          // stays on the current title until → past the last button
   onChange: (i, prev, dir) => show(i, prev, dir),
 });
 focus = HeroFocus.init(K, { ctas: () => [...copyHost.querySelectorAll(".copy:not(.out) .btn")] });
 show(0);
-K.refreshHud();
+K.refreshHud && K.refreshHud();
 </script>
 </body>
 </html>

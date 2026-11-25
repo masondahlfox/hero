@@ -168,8 +168,8 @@ const CONCEPTS = [
     tr: "1.25s streak sweep + smear resolve", tx: "Copy blurs out, lockup re-stages", best: "Sports and high-energy titles", cost: 2 },
   { f: "c12-signal-hue.html", th: "c12", t: "Signal Hue", tag: "Colour", d: "One vivid Nebula hue per title. The footage is pulled toward grey so the hue owns the frame, and everything on top of it speaks in that hue: a typeset serif title whose letters flip in from a mirror image, the badge, meta, line, CTAs and the next-title story card with its timer. The picture opens out of that card on advance.",
     tr: "1.05s open from the peek card · letter flips", tx: "Typeset title, all in one hue", best: "Giving each title its own colour identity", cost: 1 },
-  { f: "c13-slit-reel.html", th: "c13", t: "Slit Reel", tag: "Cinematic", d: "Quiet and cinematic, grey until it matters. On advance the picture closes down to a thin vertical slit and becomes one frame in a reel of grey slits. The reel glides one step, the next title's slit takes on colour, then opens back out to full bleed. At rest the next titles wait as slits on the right edge, and the nearest fills with colour from the bottom as its timer.",
-    tr: "1.6s close to slit · reel glide · open to full bleed", tx: "Title art wipes in, line tracks in", best: "Premium, film-led moments", cost: 2 },
+  { f: "c13-slit-reel.html", th: "c13", t: "Slit Reel", tag: "Cinematic", d: "A scrolling bookshelf of grey slits. The focused title is open as a wide panel inside the shelf, never full screen, with slits on both sides. The next title waits in colour just right of the panel as the peek. Moving on is one short accordion step: the panel narrows back into a slit while the next one widens into its place.",
+    tr: "0.8s accordion step · shelf slides one place", tx: "Lockup fades in place", best: "Browsing a set of premium titles", cost: 2 },
 ];
 const card = (o, thumb, num) => `
   <a class="opt" href="${o.f}">
