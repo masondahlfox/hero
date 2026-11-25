@@ -154,6 +154,8 @@ const CONCEPTS = [
     tr: "1.35s z-axis fly-through", tx: "Slides in from left", best: "Making 'what's next' visible", cost: 2 },
   { f: "c6-fox-o-window.html", th: "c6", t: "FOX-O Window", tag: "Editorial poster", d: "Each title gets a solid color field picked from its art, and the photo shows through the FOX-O silhouette. The O's counter is the color field and fills as the dwell timer. Live opens the window full-bleed after 4s.",
     tr: "1.25s window travel + field color morph", tx: "Title art hangs over the window edge", best: "Brand-forward rotation; editorial feel", cost: 2 },
+  { f: "c7-game-dash.html", th: "c7", t: "Game Dash", tag: "Game console", d: "A game-console dashboard. The focused title fills the screen, focus snaps along a tile row with a glowing ring and shine, and stat-style metadata (live score, season progress, achievements) counts up. Toasts slide in for live moments and unlocks.",
+    tr: "340ms snap focus · overshoot + shine", tx: "Big title + stat row, counts up", best: "Making the home feel playful and alive", cost: 2 },
 ];
 const card = (o, thumb, num) => `
   <a class="opt" href="${o.f}">

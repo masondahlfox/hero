@@ -11,11 +11,12 @@ Open `index.html` in Chrome or Safari. Everything runs locally from `file://` wi
 | `c4-bento-morph.html` | Per-content-type bento layouts (live / series / premiere) that re-flow into each other. |
 | `c5-depth-queue.html` | Rotation as a 3D queue; the camera flies forward through it. |
 | `c6-fox-o-window.html` | Editorial poster: per-title color field, photo seen through the FOX-O silhouette (`Fox-o.svg`), title hung over the window edge. |
+| `c7-game-dash.html` | Game-console dashboard: full-bleed backdrop, tile row with a glowing focus ring, stat-style metadata, toasts and ambient particles under the FOX One nav. |
 | `01–07-*.html` | Archive: card-based transition variants inside the current home template card. |
 
 ## Controls (every prototype)
 `← →` slide · `Space` pause · `S` safe zones · `G` grid · `O` overlay home template · `N` nav · `R` next rail · `F` fit ↔ 1:1 · `H` hide panel · `[ ]` prev/next prototype.
-Extras: C1 `M` marquee mode, `T` light theme · C2 `Enter` dive · C6 `B` full-bleed · 06 `Enter` takeover · 07 `↑ ↓`.
+Extras: C1 `M` marquee mode, `T` light theme · C2 `Enter` dive · C6 `B` full-bleed · C7 `Enter` launch, `T` toast, `P` particles · 06 `Enter` takeover · 07 `↑ ↓`.
 
 ## Swapping content
 The carousel shows only the titles that have a folder in `assets/titles/` and loops through them:
