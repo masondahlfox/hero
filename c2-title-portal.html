@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C2 · Title Portal — Fox One Multi-Hero</title>
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  /* Animatable mask geometry — the title art is the window; content never scales, the window does */
+  @property --mw { syntax: "<length>"; inherits: false; initial-value: 1200px; }
+  @property --mx { syntax: "<length>"; inherits: false; initial-value: 0px; }
+  @property --my { syntax: "<length>"; inherits: false; initial-value: 0px; }
+  @property --fill { syntax: "<number>"; inherits: false; initial-value: 0; }
+
+  .stage { background: #000; }
+  .atmo { position: absolute; inset: -60px; opacity: 0; filter: blur(50px) saturate(1.3); transition: opacity 1.2s; }
+  .atmo.on { opacity: .22; }
+  .atmo .art > * { width: 100%; height: 100%; object-fit: cover; }
+
+  .portal {
+    position: absolute; inset: 0; z-index: 5;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-size: var(--mw) auto, 100% 100%; mask-size: var(--mw) auto, 100% 100%;
+    -webkit-mask-position: var(--mx) var(--my), 0 0; mask-position: var(--mx) var(--my), 0 0;
+  }
+  .portal .art { transform: scale(1.12); transition: transform 6s cubic-bezier(.2,.6,.2,1); }
+  .portal.held .art { transform: scale(1); }
+  .portal.enter { transition: --mw 1.1s var(--ease-out), --mx 1.1s var(--ease-out), --my 1.1s var(--ease-out), opacity .8s; }
+  .portal.dive { transition: --mw 1.7s cubic-bezier(.72, 0, .22, 1), --mx 1.7s cubic-bezier(.72, 0, .22, 1), --my 1.7s cubic-bezier(.72, 0, .22, 1), --fill .5s 1.25s linear; }
+  .portal.fade { transition: opacity .35s; opacity: 0; }
+
+  /* State A — centered composition under the window */
+  .under { position: absolute; z-index: 10; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 18px; transition: opacity .4s, transform .6s var(--ease-out); }
+  .under .meta { justify-content: center; }
+  .under .hint { font: 600 19px/1 var(--f-ui); color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; margin-top: 8px; }
+  .under .hint kbd { font: 700 15px/1 var(--f-ui); padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,.14); color: #fff; }
+  .under.off { opacity: 0; transform: translateY(20px); pointer-events: none; }
+  .under > * { opacity: 0; transform: translateY(16px); }
+  .under.on > * { opacity: 1; transform: none; transition: opacity .6s var(--ease-out), transform .6s var(--ease-out); }
+  .under.on > *:nth-child(2) { transition-delay: .08s; } .under.on > *:nth-child(3) { transition-delay: .16s; } .under.on > *:nth-child(4) { transition-delay: .24s; }
+
+  /* State B — full-bleed with lockup */
+  .shade { position: absolute; inset: 0; z-index: 6; pointer-events: none; opacity: 0; transition: opacity .8s;
+    background: linear-gradient(90deg, rgba(0,0,0,.78) 0%, rgba(0,0,0,.35) 40%, rgba(0,0,0,0) 65%), linear-gradient(0deg, rgba(0,0,0,.6) 0%, rgba(0,0,0,0) 40%); }
+  .shade.on { opacity: 1; }
+  .lockup { position: absolute; inset: 0; z-index: 10; }
+  .lockup .meta-block { left: 120px; bottom: 110px; }
+  .lockup .logo img { max-height: 150px; max-width: 460px; }
+  .lockup .logo--type { font-size: 84px; }
+
+  .lk.gone { opacity: 0; transition: opacity .3s; }
+  .seq { position: absolute; z-index: 12; left: 120px; right: 120px; bottom: 54px; display: flex; gap: 10px; }
+  .seq div { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,.2); overflow: hidden; }
+  .seq i { display: block; height: 100%; width: 0; background: #fff; }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage">
+  <div class="atmo" id="atmo"></div>
+  <div class="portal" id="portal"></div>
+  <div class="shade" id="shade"></div>
+  <div class="under off" id="under"></div>
+  <div class="lockup" id="lockup"></div>
+  <div class="seq" id="seq"></div>
+</div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/logo-data.js"></script>
+<script src="shared/art.js"></script>
+<script src="shared/stage.js"></script>
+<script>
+const K = HeroKit.init({
+  title: "C2 · Title Portal",
+  notes: "The title art is a window onto the live feed or key art. After a beat, the camera dives through the thickest stroke of the title into full-bleed, and the lockup lands. The title is the transition.",
+  extraKeys: [["Enter", "Dive now"]],
+  rail: false,
+});
+const $ = (id) => document.getElementById(id);
+const portal = $("portal"), under = $("under"), lockup = $("lockup"), shade = $("shade"), atmo = $("atmo");
+const N = K.data.length, CY = 470, MAXW = 1460, MAXH = 470;
+$("seq").innerHTML = K.data.map(() => "<div><i></i></div>").join("");
+const seqBars = [...$("seq").querySelectorAll("i")];
+
+/* Per-title geometry: aspect + the focal point = the most "inside" pixel of the glyphs (largest distance to transparency) */
+const geo = {};
+function analyse(item) {
+  return new Promise((res) => {
+    const img = new Image();
+    img.onload = () => {
+      const ar = img.naturalWidth / img.naturalHeight, cols = 90, rows = Math.max(12, Math.round(cols / ar));
+      const c = document.createElement("canvas"); c.width = cols; c.height = rows;
+      const g = c.getContext("2d"); g.drawImage(img, 0, 0, cols, rows);
+      let fx = .5, fy = .5, dmax = .02;
+      try {
+        const a = g.getImageData(0, 0, cols, rows).data, op = [], tr = [];
+        for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) (a[(y * cols + x) * 4 + 3] > 128 ? op : tr).push([x, y]);
+        for (let x = -1; x <= cols; x++) { tr.push([x, -1]); tr.push([x, rows]); }
+        for (let y = 0; y < rows; y++) { tr.push([-1, y]); tr.push([cols, y]); }
+        let best = -1;
+        for (const [x, y] of op) {
+          let m = 1e9; for (const [tx, ty] of tr) { const d = (tx - x) ** 2 + (ty - y) ** 2; if (d < m) m = d; }
+          const score = Math.sqrt(m) - Math.hypot(x / cols - .5, y / rows - .5) * 2;   // prefer thick + central
+          if (score > best) { best = score; fx = (x + .5) / cols; fy = (y + .5) / rows; dmax = Math.sqrt(m) / cols; }
+        }
+      } catch (e) { /* tainted canvas → fall back to centre */ }
+      res((geo[item.id] = { ar, fx, fy, dmax }));
+    };
+    img.src = window.LOGO_DATA[item.id];
+  });
+}
+
+function aState(g) {
+  const wa = Math.min(MAXW, MAXH * g.ar), ha = wa / g.ar;
+  return { w: wa, h: ha, x: 960 - wa / 2, y: CY - ha / 2 };
+}
+function setMask(w, x, y) { portal.style.setProperty("--mw", w + "px"); portal.style.setProperty("--mx", x + "px"); portal.style.setProperty("--my", y + "px"); }
+
+let cur = -1, dived = false, token = 0;
+async function load(i) {
+  const t = ++token, item = K.data[i];
+  const g = geo[item.id] || (await analyse(item));
+  dived = false;
+  portal.classList.add("fade"); shade.classList.remove("on"); under.classList.remove("on"); under.classList.add("off");
+  lockup.querySelector(".lk")?.classList.add("gone");
+  await new Promise((r) => setTimeout(r, cur === -1 ? 0 : 360));
+  if (t !== token) return;
+  cur = i;
+  const A = aState(g);
+  portal.className = "portal";
+  portal.style.webkitMaskImage = portal.style.maskImage = `url("${window.LOGO_DATA[item.id]}"), linear-gradient(rgba(0,0,0,var(--fill)) 0 0)`;
+  portal.style.setProperty("--fill", 0);
+  setMask(A.w * .82, A.x + A.w * .09, A.y + A.h * .09);
+  portal.style.opacity = 0;
+  portal.innerHTML = `<div class="art">${K.art(item)}</div>`;
+  atmo.innerHTML = `<div class="art">${K.art(item, "all", { still: true })}</div>`; atmo.classList.add("on");
+  lockup.innerHTML = `<div class="lk">${K.metaBlock(item)}</div>`;
+  under.innerHTML = `${item.type === "live"
+      ? `<div class="status-row"><span class="badge badge--live"><span class="dot"></span>Live</span><span class="score"><span class="score__t" style="--c:${item.score.away.color}">${item.score.away.abbr} <em>${item.score.away.score}</em></span><span class="score__t" style="--c:${item.score.home.color}">${item.score.home.abbr} <em>${item.score.home.score}</em></span><span class="score__clock">${item.score.clock}</span></span></div>`
+      : item.status ? `<div class="status-row"><span class="badge badge--${item.status.kind}">${item.status.badge}</span></div>` : `<div class="sponsor">${item.sponsor.label} <b>${item.sponsor.name}</b></div>`}
+    <div class="meta">${item.meta.map((m, n) => n ? `<span>${m}</span>` : `<span class="net">${m}</span>`).join("")}</div>
+    <div class="tagline">${item.tagline}</div>
+    <div class="hint">Press <kbd>OK</kbd> to step inside</div>`;
+  under.style.top = (A.y + A.h + 40) + "px";
+  if (item.type === "live") under.style.top = (A.y + A.h + 34) + "px";
+  void portal.offsetWidth;
+  requestAnimationFrame(() => {
+    portal.classList.add("enter"); portal.style.opacity = 1;
+    setMask(A.w, A.x, A.y);
+    portal.classList.add("held");
+    under.classList.remove("off"); under.classList.add("on");
+    K.syncVideos(portal);
+  });
+  seqBars.forEach((b, n) => (b.style.width = n < i ? "100%" : "0"));
+}
+
+function dive() {
+  if (dived || cur < 0) return; dived = true;
+  const item = K.data[cur], g = geo[item.id], A = aState(g);
+  const px = A.x + g.fx * A.w, py = A.y + g.fy * A.h;
+  const wb = Math.min(160000, 1500 / Math.max(.004, g.dmax));       // stroke half-width grows past the screen diagonal
+  const hb = wb / g.ar;
+  portal.classList.remove("enter"); portal.classList.add("dive");
+  setMask(wb, px - g.fx * wb, py - g.fy * hb);
+  portal.style.setProperty("--fill", 1);
+  under.classList.remove("on"); under.classList.add("off"); atmo.classList.remove("on");
+  setTimeout(() => { if (!dived) return; shade.classList.add("on"); const lk = lockup.querySelector(".lk"); if (lk) { void lk.offsetWidth; lk.classList.add("is-active"); } }, 1350);
+}
+
+const DIVE_AT = (i) => (K.data[i].type === "live" ? 4200 : 3600);
+K.rot = K.Rotator({
+  count: N,
+  durationFor: (i) => (K.data[i].type === "live" ? 12000 : 9000),
+  onChange: (i) => load(i),
+  onTick: (p, i, el) => { seqBars[i].style.width = (p * 100).toFixed(1) + "%"; if (el > DIVE_AT(i) && cur === i) dive(); },
+});
+K.onKey((e) => { if (e.key === "Enter") { dive(); return true; } });
+Promise.all(K.data.map(analyse)).then(() => { load(0); K.refreshHud(); });
+</script>
+</body>
+</html>

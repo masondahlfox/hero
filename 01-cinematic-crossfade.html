@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>01 · Cinematic Crossfade — Fox One Multi-Hero</title>
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  /* Crossfade: incoming slide fades over the outgoing one (no dip to black). */
+  .slide { opacity: 0; transition: opacity 1.1s var(--ease-std); }
+  .slide.is-active { opacity: 1; z-index: 3; }
+  .slide.is-prev { opacity: 1; z-index: 2; transition: none; }
+  .slide.is-prev .meta-block { opacity: 0; transform: translateY(-10px); transition: opacity .3s, transform .3s; }
+
+  /* Ken Burns — slow push on key art, direction alternates per slide */
+  .kb { position: absolute; inset: 0; animation: kb var(--dur, 12s) linear forwards; transform-origin: var(--ox, 70%) var(--oy, 40%); }
+  @keyframes kb { from { transform: scale(1.02); } to { transform: scale(1.12) translate(var(--kx, -1.5%), var(--ky, 0)); } }
+
+  .is-active .stagger > * { --delay: 450ms; }
+
+  /* Progress pips — bottom-right of card */
+  .pips { position: absolute; z-index: 30; right: var(--pad); bottom: calc(var(--pad) + 26px); display: flex; gap: 10px; }
+  .pip { width: 56px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.28); overflow: hidden; }
+  .pip i { display: block; height: 100%; width: 0; background: #fff; }
+  .pip.is-done i { width: 100%; }
+  .counter { position: absolute; z-index: 30; right: var(--pad); bottom: calc(var(--pad) + 48px); font: 700 20px/1 var(--f-ui); color: var(--ink-3); letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+  .counter b { color: #fff; }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage">
+  <div class="card" id="card"><div class="grain"></div></div>
+</div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/art.js"></script>
+<script src="shared/stage.js"></script>
+<script>
+const K = HeroKit.init({
+  title: "01 · Cinematic Crossfade",
+  notes: "Key art crossfades (1.1s) under a slow Ken Burns push. Metadata exits fast, then staggers in at 70ms intervals. Live slides dwell 12s, others 8s."
+});
+const card = document.getElementById("card");
+const origins = [["72%", "38%", "-1.5%", "0"], ["60%", "50%", "1%", "-1%"], ["78%", "30%", "-1%", "1%"], ["65%", "45%", "1.5%", "0"]];
+
+K.data.forEach((item, i) => {
+  const [ox, oy, kx, ky] = origins[i % origins.length];
+  card.insertAdjacentHTML("beforeend", `
+    <div class="slide layer" data-i="${i}">
+      <div class="kb" style="--ox:${ox};--oy:${oy};--kx:${kx};--ky:${ky};--dur:${(item.dwell || 8000) / 1000 + 3}s"><div class="art">${K.art(item)}</div></div>
+      <div class="scrim"></div>
+      ${K.metaBlock(item)}
+    </div>`);
+});
+card.insertAdjacentHTML("beforeend", `<div class="counter" id="counter"></div><div class="pips" id="pips">${K.data.map(() => '<div class="pip"><i></i></div>').join("")}</div>`);
+
+const slides = [...card.querySelectorAll(".slide")], pips = [...card.querySelectorAll(".pip")];
+let prevTimer;
+
+function show(i, prev) {
+  slides.forEach((s) => s.classList.remove("is-prev"));
+  if (prev !== undefined && prev !== i) slides[prev].classList.add("is-prev");
+  slides.forEach((s, n) => s.classList.toggle("is-active", n === i));
+  const kb = slides[i].querySelector(".kb"); kb.style.animation = "none"; void kb.offsetWidth; kb.style.animation = "";
+  K.replay(slides[i]);
+  clearTimeout(prevTimer); prevTimer = setTimeout(() => slides.forEach((s) => s.classList.remove("is-prev")), 1200);
+  pips.forEach((p, n) => { p.classList.toggle("is-done", n < i); p.querySelector("i").style.width = n < i ? "100%" : "0"; });
+  document.getElementById("counter").innerHTML = `<b>${String(i + 1).padStart(2, "0")}</b> / ${String(K.data.length).padStart(2, "0")}`;
+}
+
+K.rot = K.Rotator({
+  count: K.data.length,
+  durationFor: (i) => K.data[i].dwell || 8000,
+  onChange: (i, prev) => show(i, prev),
+  onTick: (p, i) => { pips[i].querySelector("i").style.width = (p * 100).toFixed(1) + "%"; },
+});
+show(0);
+K.refreshHud();
+</script>
+</body>
+</html>

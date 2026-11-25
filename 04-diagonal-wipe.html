@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>04 · Diagonal Wipe — Fox One Multi-Hero</title>
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  .slide { visibility: hidden; }
+  .slide.is-active, .slide.is-out { visibility: visible; }
+  .slide.is-active { z-index: 3; }
+  .slide.is-out { z-index: 2; }
+  .slide.is-out .meta-block { opacity: 0; transition: opacity .25s; }
+  .slide .art { transform-origin: 70% 50%; }
+
+  /* Leading-edge band: accent stripe + hairline travel with the wipe edge (22.8° = 20% of 1680 over 800) */
+  .band { position: absolute; z-index: 20; top: -10%; height: 120%; left: 0; width: 150px; pointer-events: none; opacity: 0; }
+  .band::before, .band::after { content: ""; position: absolute; top: 0; bottom: 0; transform: skewX(-22.8deg); }
+  .band::before { left: 0; width: 96px; background: linear-gradient(90deg, var(--acc), color-mix(in srgb, var(--acc) 30%, transparent)); mix-blend-mode: screen; }
+  .band::after { left: 110px; width: 6px; background: #fff; opacity: .9; }
+  .band.rev::before { left: 54px; background: linear-gradient(270deg, var(--acc), color-mix(in srgb, var(--acc) 30%, transparent)); }
+  .band.rev::after { left: 34px; }
+
+  /* Title art reveals with a matching left→right mask after the wipe lands */
+  .is-active .stagger > .logo { animation: logoWipe .9s var(--ease-out) both; animation-delay: 620ms; }
+  @keyframes logoWipe { from { opacity: 1; clip-path: inset(-10% 100% -10% 0); transform: translateX(-12px); } to { opacity: 1; clip-path: inset(-10% -5% -10% 0); transform: none; } }
+  .is-active .stagger > * { --delay: 560ms; }
+
+  .ticks { position: absolute; z-index: 30; right: var(--pad); bottom: calc(var(--pad) + 20px); display: flex; gap: 14px; align-items: flex-end; }
+  .tick { width: 4px; height: 22px; border-radius: 2px; background: rgba(255,255,255,.3); transform: skewX(-22.8deg); overflow: hidden; position: relative; transition: height .4s var(--ease-out); }
+  .tick i { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: #fff; }
+  .tick.is-active { height: 44px; }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage">
+  <div class="card" id="card"><div class="band" id="band"></div><div class="grain"></div></div>
+</div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/art.js"></script>
+<script src="shared/stage.js"></script>
+<script>
+const K = HeroKit.init({
+  title: "04 · Diagonal Wipe",
+  notes: "Broadcast-style transition: the next title wipes in on a 22.8° edge led by the title's accent color, echoing sports graphics packages. Title art then mask-reveals on the same axis. 1.0s wipe."
+});
+const card = document.getElementById("card"), band = document.getElementById("band");
+K.data.forEach((item) => card.insertAdjacentHTML("beforeend", `
+  <div class="slide layer"><div class="art">${K.art(item)}</div><div class="scrim"></div>${K.metaBlock(item)}</div>`));
+card.insertAdjacentHTML("beforeend", `<div class="ticks">${K.data.map(() => '<span class="tick"><i></i></span>').join("")}</div>`);
+const slides = [...card.querySelectorAll(".slide")], ticks = [...card.querySelectorAll(".tick")];
+const W = 1680, DUR = 1000, EASE = "cubic-bezier(.77,0,.18,1)";
+let running = [];
+
+function show(i, prev, dir) {
+  running.forEach((a) => a.finish()); running = [];
+  slides.forEach((s) => s.classList.remove("is-out"));
+  const inc = slides[i];
+  slides.forEach((s, n) => s.classList.toggle("is-active", n === i));
+  ticks.forEach((t, n) => { t.classList.toggle("is-active", n === i); t.querySelector("i").style.height = "0"; });
+  K.replay(inc);
+  if (prev === undefined || prev === i) return;
+
+  const out = slides[prev]; out.classList.add("is-out");
+  const fwd = dir > 0;
+  const from = fwd ? "polygon(120% 0, 140% 0, 140% 100%, 100% 100%)" : "polygon(-40% 0, -2% 0, -22% 100%, -40% 100%)";
+  const to   = fwd ? "polygon(-2% 0, 140% 0, 140% 100%, -22% 100%)" : "polygon(-40% 0, 122% 0, 102% 100%, -40% 100%)";
+  running.push(inc.animate([{ clipPath: from }, { clipPath: to }], { duration: DUR, easing: EASE }));
+  running.push(inc.querySelector(".art").animate([{ transform: `translateX(${fwd ? 6 : -6}%) scale(1.08)` }, { transform: "none" }], { duration: DUR + 400, easing: "cubic-bezier(.16,1,.3,1)" }));
+  running.push(out.querySelector(".art").animate([{ transform: "none", filter: "brightness(1)" }, { transform: `translateX(${fwd ? -4 : 4}%) scale(1.04)`, filter: "brightness(.45)" }], { duration: DUR, easing: EASE }));
+
+  // Band center tracks the edge midpoint: fwd 110% → -12%; rev -12% → 112%
+  band.style.setProperty("--acc", K.data[i].accent || "#2d6bff");
+  band.classList.toggle("rev", !fwd);
+  const x0 = fwd ? 1.10 * W : -0.12 * W - 150, x1 = fwd ? -0.12 * W : 1.12 * W - 150;
+  running.push(band.animate([{ transform: `translateX(${x0}px)`, opacity: 1 }, { opacity: 1, offset: .8 }, { transform: `translateX(${x1}px)`, opacity: 0 }], { duration: DUR, easing: EASE }));
+  const done = running[0]; done.onfinish = () => out.classList.remove("is-out");
+}
+
+K.rot = K.Rotator({
+  count: K.data.length, minGap: 600,
+  durationFor: (i) => K.data[i].dwell || 8000,
+  onChange: (i, prev, dir) => show(i, prev, dir),
+  onTick: (p, i) => { ticks[i].querySelector("i").style.height = (p * 100).toFixed(1) + "%"; },
+});
+show(0);
+K.refreshHud();
+</script>
+</body>
+</html>

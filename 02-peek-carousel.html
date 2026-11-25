@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>02 · Peek Carousel — Fox One Multi-Hero</title>
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  /* Cards sit on a 1713px pitch (1680 card + 33 gap) so the prev/next card peeks 87px at each edge — matches template. */
+  .pcard {
+    position: absolute; z-index: 10; left: var(--card-x); top: var(--card-y); width: var(--card-w); height: var(--card-h);
+    border-radius: var(--card-r); overflow: hidden; background: #0c0c0e; transform: translateX(calc(var(--o) * 1713px));
+    transition: transform .95s cubic-bezier(.65, 0, .35, 1);
+  }
+  .pcard.no-anim, .pcard.no-anim * { transition: none !important; }
+  /* Window parallax: art is wider than the card and counter-shifts as the card travels */
+  .pcard .art { inset: 0 -10%; transform: translateX(calc(var(--o) * -9%)); transition: transform .95s cubic-bezier(.65, 0, .35, 1); }
+  .pcard .dim { position: absolute; inset: 0; background: #000; opacity: .55; transition: opacity .6s var(--ease-std); pointer-events: none; z-index: 25; }
+  .pcard.is-active .dim { opacity: 0; }
+  .pcard:not(.is-active) .meta-block { opacity: 0; transition: opacity .25s; }
+  .is-active .stagger > * { --delay: 620ms; }
+
+  /* Pagination — centered in the 48px gutter between card and rail */
+  .dots { position: absolute; z-index: 30; top: 948px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; }
+  .pdot { width: 10px; height: 10px; border-radius: 5px; background: rgba(255,255,255,.3); overflow: hidden; transition: width .5s var(--ease-out), background .3s; }
+  .pdot i { display: block; height: 100%; width: 0; background: #fff; }
+  .pdot.is-active { width: 56px; background: rgba(255,255,255,.3); }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage"><div id="track"></div></div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/art.js"></script>
+<script src="shared/stage.js"></script>
+<script>
+const K = HeroKit.init({
+  title: "02 · Peek Carousel",
+  notes: "Native to the current template: neighbours peek 87px at both edges. Cards travel 950ms (ease-in-out) with window-parallax on the art; metadata lands after the card settles."
+});
+const track = document.getElementById("track"), N = K.data.length;
+K.data.forEach((item, i) => track.insertAdjacentHTML("beforeend", `
+  <div class="pcard" data-i="${i}">
+    <div class="art">${K.art(item)}</div><div class="scrim"></div>${K.metaBlock(item)}<div class="dim"></div><div class="grain"></div>
+  </div>`));
+document.getElementById("stage").insertAdjacentHTML("beforeend", `<div class="dots">${K.data.map(() => '<span class="pdot"><i></i></span>').join("")}</div>`);
+const cards = [...track.children], dots = [...document.querySelectorAll(".pdot")];
+const prevOff = cards.map(() => null);
+
+function show(i) {
+  cards.forEach((c, n) => {
+    let o = n - i; if (o > Math.floor(N / 2)) o -= N; if (o < -Math.floor((N - 1) / 2)) o += N;
+    const jump = prevOff[n] !== null && Math.abs(o - prevOff[n]) > 1;   // wrapping card: teleport off-screen
+    c.classList.toggle("no-anim", jump);
+    c.style.setProperty("--o", o); prevOff[n] = o;
+    if (jump) { void c.offsetWidth; requestAnimationFrame(() => c.classList.remove("no-anim")); }
+    c.style.zIndex = o === 0 ? 12 : 10;
+    c.classList.toggle("is-active", o === 0);
+  });
+  K.replay(cards[i]);
+  dots.forEach((d, n) => { d.classList.toggle("is-active", n === i); d.querySelector("i").style.width = "0"; });
+}
+
+K.rot = K.Rotator({
+  count: N,
+  durationFor: (i) => K.data[i].dwell || 8000,
+  onChange: (i) => show(i),
+  onTick: (p, i) => { dots[i].querySelector("i").style.width = (p * 100).toFixed(1) + "%"; },
+});
+show(0);
+K.refreshHud();
+</script>
+</body>
+</html>

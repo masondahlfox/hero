@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C5 · Depth Queue — Fox One Multi-Hero</title>
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  .stage { background: #030304; }
+  .glow { position: absolute; inset: 0; transition: background 1.4s; background: radial-gradient(60% 70% at 66% 48%, color-mix(in srgb, var(--acc, #335) 30%, transparent), transparent 70%); }
+  .space { position: absolute; inset: 0; perspective: 1500px; perspective-origin: 66% 44%; }
+  .plane { position: absolute; left: 1210px; top: 540px; width: 1080px; height: 608px; border-radius: 18px; overflow: hidden; background: #111;
+    box-shadow: 0 40px 120px rgba(0,0,0,.6); transform-origin: 50% 50%; will-change: transform, opacity;
+    transition: transform 1.35s cubic-bezier(.6, 0, .2, 1), opacity 1.35s cubic-bezier(.6, 0, .2, 1); }
+  .plane.snap { transition: none !important; }
+  .plane .art { inset: 0; }
+  .plane .fog { position: absolute; inset: 0; background: #030304; transition: opacity 1.35s; pointer-events: none; }
+  .plane .tag { position: absolute; left: 28px; top: 24px; display: flex; align-items: center; gap: 12px; font: 800 26px/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.6); transition: opacity .6s; }
+  .plane .tag i { width: 14px; height: 14px; border-radius: 50%; background: var(--live-hot); animation: pulse 1.6s infinite; }
+  .plane.front .tag { opacity: 0; }
+  .plane .pr { position: absolute; left: 28px; right: 28px; bottom: 22px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.22); opacity: 0; transition: opacity .4s; }
+  .plane.front .pr { opacity: 1; } .plane .pr i { display: block; height: 100%; width: 0; background: #fff; }
+
+  .lscrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(20deg, rgba(3,3,4,.96) 0%, rgba(3,3,4,.75) 26%, rgba(3,3,4,0) 48%); }
+  .host { position: absolute; left: 120px; bottom: 150px; width: 620px; }
+  .host .mw { position: absolute; left: 0; bottom: 0; width: 620px; }
+  .host .meta-block { position: static; width: auto; }
+  .host .logo img { max-height: 160px; max-width: 520px; }
+  .host .logo--type { font-size: 96px; }
+  .mw.out { opacity: 0; transform: translateX(-24px); transition: opacity .35s, transform .35s; }
+  .is-active .stagger > * { --delay: 520ms; }
+  .depth { position: absolute; left: 120px; bottom: 80px; display: flex; gap: 14px; align-items: center; font: 700 16px/1 var(--f-ui); letter-spacing: .12em; color: var(--ink-3); text-transform: uppercase; }
+  .depth span { width: 34px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.2); transition: background .4s, width .4s; }
+  .depth span.on { background: #fff; width: 64px; }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage">
+  <div class="glow" id="glow"></div>
+  <div class="space" id="space"></div>
+  <div class="lscrim"></div>
+  <div class="host" id="host"></div>
+  <div class="depth" id="depth"></div>
+</div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/art.js"></script>
+<script src="shared/stage.js"></script>
+<script>
+const K = HeroKit.init({
+  title: "C5 · Depth Queue",
+  notes: "The rotation is a physical queue receding into depth, so you can see what's coming. Advancing flies the camera forward: the current title rushes past the lens and the next one settles into focus. Back (◀) pulls the last title in from behind the viewer.",
+  rail: false,
+});
+const N = K.data.length, space = document.getElementById("space"), host = document.getElementById("host");
+const D = (k) => `translate(-50%, -50%) translate3d(${-k * 620}px, ${-k * 200}px, ${-k * 700}px) rotateY(${k > 0 ? 9 : k < 0 ? -4 : 0}deg)`;
+const FOG = (k) => (k <= 0 ? 0 : Math.min(.8, .38 + (k - 1) * .18));
+
+const planes = K.data.map((d) => {
+  const p = document.createElement("div"); p.className = "plane";
+  p.innerHTML = `<div class="art">${K.art(d)}</div><div class="tag">${d.type === "live" ? "<i></i>" : ""}${d.typeLabel}</div><div class="fog"></div><div class="pr"><i></i></div>`;
+  space.append(p); return p;
+});
+document.getElementById("depth").innerHTML = K.data.map(() => "<span></span>").join("") ;
+const ticks = [...document.querySelectorAll("#depth span")];
+
+function put(p, k, op) { p.style.transform = D(k); p.style.opacity = op; p.style.zIndex = 50 - Math.round(k * 10); p.querySelector(".fog").style.opacity = FOG(k); }
+function snapTo(p, k, op) { p.classList.add("snap"); put(p, k, op); void p.offsetWidth; p.classList.remove("snap"); }
+
+function show(i, prev, dir = 1) {
+  planes.forEach((p, j) => {
+    const k = (j - i + N) % N;
+    p.classList.toggle("front", k === 0); p.querySelector(".pr i").style.width = "0";
+    if (prev !== undefined && dir > 0 && j === prev) {          // fly past the camera, then recycle to the back
+      put(p, -1.1, 0);
+      setTimeout(() => { snapTo(p, N, 0); requestAnimationFrame(() => put(p, (j - K.rot.index + N) % N, 1)); }, 1380);
+    } else if (prev !== undefined && dir < 0 && j === i) {      // pulled in from behind the viewer
+      snapTo(p, -1.1, 0); requestAnimationFrame(() => put(p, 0, 1));
+    } else put(p, k, k > N - 2 ? .9 : 1);
+  });
+  K.syncVideos(planes[i]);
+  document.getElementById("glow").style.setProperty("--acc", K.data[i].type === "live" ? "#00a5b5" : K.data[i].accent);
+  const o = host.querySelector(".mw:not(.out)"); if (o) { o.classList.add("out"); setTimeout(() => o.remove(), 380); }
+  host.insertAdjacentHTML("beforeend", `<div class="mw">${K.metaBlock(K.data[i], { noSocial: true })}</div>`);
+  const nw = host.lastElementChild; void nw.offsetWidth; nw.classList.add("is-active");
+  ticks.forEach((t, n) => t.classList.toggle("on", n === i));
+}
+
+K.rot = K.Rotator({
+  count: N, minGap: 900,
+  durationFor: (i) => (K.data[i].type === "live" ? 11000 : 8000),
+  onChange: (i, prev, dir) => show(i, prev, dir),
+  onTick: (p, i) => { planes[i].querySelector(".pr i").style.width = (p * 100).toFixed(1) + "%"; },
+});
+show(0);
+K.refreshHud();
+</script>
+</body>
+</html>

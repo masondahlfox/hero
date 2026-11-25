@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>07 · Content-Type Tabs — Fox One Multi-Hero</title>
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  .slide { opacity: 0; transition: opacity .8s var(--ease-std); }
+  .slide.is-active { opacity: 1; z-index: 3; }
+  .slide.is-prev { opacity: 1; z-index: 2; transition: none; }
+  .slide .art { transform: translateY(var(--from, 3%)) scale(1.04); transition: transform 1.4s var(--ease-out); }
+  .slide.is-active .art { transform: none; }
+  .slide.is-prev .meta-block { opacity: 0; transform: translateY(calc(var(--dir, 1) * -40px)); transition: opacity .3s, transform .4s var(--ease-std); }
+  .stagger > * { transform: translateY(calc(var(--dir, 1) * 40px)); }
+  .is-active .stagger > * { animation-name: vIn; --delay: 260ms; }
+  @keyframes vIn { from { opacity: 0; transform: translateY(calc(var(--dir, 1) * 40px)); } to { opacity: 1; transform: none; } }
+
+  /* Right-hand index: each row names the content TYPE first, then the title */
+  .index { position: absolute; z-index: 30; right: var(--pad); bottom: var(--pad); width: 400px; padding: 10px; border-radius: 18px;
+    background: rgba(10,10,12,.42); backdrop-filter: blur(22px) saturate(1.2); -webkit-backdrop-filter: blur(22px) saturate(1.2); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); }
+  .rows { position: relative; }
+  .indicator { position: absolute; left: 0; right: 0; top: 0; height: 84px; border-radius: 12px; background: rgba(255,255,255,.14);
+    transition: transform .55s cubic-bezier(.34, 1.4, .64, 1); }
+  .indicator::before { content: ""; position: absolute; left: 0; top: 18px; bottom: 18px; width: 4px; border-radius: 2px; background: var(--acc, #fff); transition: background .4s; }
+  .row { position: relative; height: 84px; padding: 16px 18px 0 22px; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 14px; align-items: start; }
+  .row__type { font: 800 15px/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center; gap: 8px; transition: color .3s; }
+  .row__type .ldot { width: 8px; height: 8px; border-radius: 50%; background: var(--live-hot); animation: pulse 1.6s infinite; }
+  .row__title { grid-column: 1; margin-top: 9px; font: 600 24px/1.1 var(--f-ui); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .3s; }
+  .row__aside { grid-row: 1 / span 2; grid-column: 2; align-self: center; font: 700 17px/1 var(--f-ui); color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .row.is-active .row__title { color: #fff; }
+  .row.is-active .row__type { color: var(--acc); }
+  .row[data-type="live"] .row__type { color: #ff5a6e; }
+  .row__bar { position: absolute; left: 22px; right: 18px; bottom: 9px; height: 3px; border-radius: 2px; background: rgba(255,255,255,.16); opacity: 0; transition: opacity .3s; }
+  .row__bar i { display: block; height: 100%; width: 0; background: #fff; border-radius: 2px; }
+  .row.is-active .row__bar { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage">
+  <div class="card" id="card"><div class="grain"></div></div>
+</div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/art.js"></script>
+<script src="shared/stage.js"></script>
+<script>
+const K = HeroKit.init({
+  title: "07 · Content-Type Tabs",
+  notes: "Makes the multi-hero's mix explicit — Live / Show / Premiere are labeled in an index, so a user landing mid-rotation knows what else is in the unit. Transitions are vertical to match the list (↑/↓ also step).",
+  extraKeys: [["↑ ↓", "Step through the index"]]
+});
+const card = document.getElementById("card");
+K.data.forEach((item) => card.insertAdjacentHTML("beforeend", `
+  <div class="slide layer"><div class="art">${K.art(item)}</div><div class="scrim"></div>${K.metaBlock(item)}</div>`));
+
+const aside = (item) => item.type === "live" ? `${item.score.away.score}–${item.score.home.score}`
+  : item.countdown ? "Sun 8/7c" : item.meta[item.meta.length - 1];
+card.insertAdjacentHTML("beforeend", `<div class="index"><div class="rows"><div class="indicator" id="ind"></div>
+  ${K.data.map((item) => `<div class="row" data-type="${item.type}" style="--acc:${item.accent}">
+    <div class="row__type">${item.type === "live" ? '<span class="ldot"></span>' : ""}${item.typeLabel}</div>
+    <div class="row__title">${item.logoAlt || item.logoText}</div>
+    <div class="row__aside" ${item.type === "live" ? "data-live-aside" : ""}>${aside(item)}</div>
+    <div class="row__bar"><i></i></div></div>`).join("")}</div></div>`);
+
+const slides = [...card.querySelectorAll(".slide")], rows = [...card.querySelectorAll(".row")], ind = document.getElementById("ind");
+let t;
+function show(i, prev, dir = 1) {
+  card.style.setProperty("--dir", dir);
+  slides.forEach((s) => s.classList.remove("is-prev"));
+  if (prev !== undefined && prev !== i) slides[prev].classList.add("is-prev");
+  slides.forEach((s, n) => { s.classList.toggle("is-active", n === i); s.style.setProperty("--from", (dir * 3) + "%"); });
+  K.replay(slides[i]);
+  clearTimeout(t); t = setTimeout(() => slides.forEach((s) => s.classList.remove("is-prev")), 900);
+  ind.style.transform = `translateY(${i * 84}px)`; ind.style.setProperty("--acc", K.data[i].type === "live" ? "#ff2d4a" : K.data[i].accent);
+  rows.forEach((r, n) => { r.classList.toggle("is-active", n === i); r.querySelector(".row__bar i").style.width = "0"; });
+}
+K.rot = K.Rotator({
+  count: K.data.length,
+  durationFor: (i) => K.data[i].dwell || 8000,
+  onChange: (i, prev, dir) => show(i, prev, dir),
+  onTick: (p, i) => { rows[i].querySelector(".row__bar i").style.width = (p * 100).toFixed(1) + "%"; },
+});
+K.onKey((e) => {
+  if (e.key === "ArrowDown") { K.rot.next(true); return true; }
+  if (e.key === "ArrowUp") { K.rot.prev(true); return true; }
+});
+show(0);
+K.refreshHud();
+</script>
+</body>
+</html>

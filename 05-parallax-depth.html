@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>05 · Parallax Depth — Fox One Multi-Hero</title>
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  .slide { visibility: hidden; }
+  .slide.is-active, .slide.is-out { visibility: visible; }
+  .slide.is-active { z-index: 3; } .slide.is-out { z-index: 2; }
+  /* Layers are oversized so idle drift + push never reveal an edge */
+  .plx { position: absolute; inset: 0 -6%; }
+  .plx > .art { inset: 0; }
+  .drift-mid { animation: drift 11s ease-in-out infinite alternate; }
+  .drift-fg { animation: drift 7s ease-in-out infinite alternate-reverse; --amp: 18px; }
+    @keyframes drift { from { transform: translateX(calc(var(--amp, 8px) * -1)); } to { transform: translateX(var(--amp, 8px)); } }
+  .meta-wrap { position: absolute; inset: 0; z-index: 20; }
+  .is-active .stagger > * { --delay: 700ms; }
+
+  .depth-meter { position: absolute; z-index: 30; right: var(--pad); bottom: var(--pad); display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+  .dm-row { display: flex; gap: 8px; }
+  .dm { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font: 700 16px/1 var(--f-ui); color: var(--ink-3); box-shadow: inset 0 0 0 2px rgba(255,255,255,.22); position: relative; transition: color .3s, transform .4s var(--ease-out); }
+  .dm svg { position: absolute; inset: -2px; width: 44px; height: 44px; transform: rotate(-90deg); }
+  .dm circle { fill: none; stroke: #fff; stroke-width: 2.5; stroke-dasharray: 125.6; stroke-dashoffset: 125.6; }
+  .dm.is-active { color: #fff; transform: scale(1.12); }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage">
+  <div class="card" id="card"><div class="grain"></div></div>
+</div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/art.js"></script>
+<script src="shared/stage.js"></script>
+<script>
+const K = HeroKit.init({
+  title: "05 · Parallax Depth",
+  notes: "Push transition with layers travelling at different rates (bg 22%, mid 55%, fg 95%, text 40%), plus idle drift between transitions. Needs layered art (bg / mid / fg cut-outs); with flat key art or video it falls back to bg + text."
+});
+const card = document.getElementById("card");
+const LAYERS = [["bg", .22], ["mid", .55], ["fg", .95]];
+K.data.forEach((item) => {
+  const layers = LAYERS.map(([l]) => { const a = K.art(item, l); return a ? `<div class="plx" data-l="${l}"><div class="art drift-${l}">${a}</div></div>` : ""; }).join("");
+  card.insertAdjacentHTML("beforeend", `<div class="slide layer">${layers}<div class="scrim"></div><div class="meta-wrap">${K.metaBlock(item)}</div></div>`);
+});
+card.insertAdjacentHTML("beforeend", `<div class="depth-meter"><div class="dm-row">${K.data.map((_, n) => `<span class="dm">${n + 1}<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="20"/></svg></span>`).join("")}</div></div>`);
+const slides = [...card.querySelectorAll(".slide")], dms = [...card.querySelectorAll(".dm")];
+const W = 1680, DUR = 1300, EASE = "cubic-bezier(.65,0,.35,1)";
+let running = [];
+
+function show(i, prev, dir) {
+  running.forEach((a) => a.finish()); running = [];
+  slides.forEach((s) => s.classList.remove("is-out"));
+  slides.forEach((s, n) => s.classList.toggle("is-active", n === i));
+  dms.forEach((d, n) => { d.classList.toggle("is-active", n === i); d.querySelector("circle").style.strokeDashoffset = 125.6; });
+  K.replay(slides[i]);
+  if (prev === undefined || prev === i) return;
+  const inc = slides[i], out = slides[prev]; out.classList.add("is-out");
+  const s = dir > 0 ? 1 : -1;
+  const FADE_IN = { bg: .45, mid: .6, fg: .75 };   // incoming layers resolve back-to-front
+  LAYERS.forEach(([l, k]) => {
+    const a = inc.querySelector(`[data-l="${l}"]`), b = out.querySelector(`[data-l="${l}"]`);
+    if (a) running.push(a.animate([{ transform: `translateX(${s * W * k}px)`, opacity: 0 }, { opacity: 1, offset: FADE_IN[l] }, { transform: "none", opacity: 1 }], { duration: DUR, easing: EASE }));
+    if (b) running.push(b.animate([{ transform: "none", opacity: 1 }, { opacity: 0, offset: .7 }, { transform: `translateX(${-s * W * k}px)`, opacity: 0 }], { duration: DUR, easing: EASE, fill: "forwards" }));
+  });
+  running.push(out.querySelector(".meta-wrap").animate([{ transform: "none", opacity: 1 }, { transform: `translateX(${-s * W * .4}px)`, opacity: 0 }], { duration: DUR * .6, easing: EASE, fill: "forwards" }));
+  const last = running[running.length - 1];
+  last.onfinish = () => setTimeout(() => { out.classList.remove("is-out"); out.getAnimations({ subtree: true }).forEach((an) => an.effect && an.effect.getComputedTiming().fill === "forwards" && an.cancel()); }, DUR * .45);
+}
+
+K.rot = K.Rotator({
+  count: K.data.length, minGap: 700,
+  durationFor: (i) => K.data[i].dwell || 8000,
+  onChange: (i, prev, dir) => show(i, prev, dir),
+  onTick: (p, i) => { dms[i].querySelector("circle").style.strokeDashoffset = (125.6 * (1 - p)).toFixed(1); },
+});
+show(0);
+K.refreshHud();
+</script>
+</body>
+</html>
