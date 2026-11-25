@@ -8,6 +8,7 @@
     ["c5-depth-queue.html", "C5 · Depth Queue"],
     ["c6-fox-o-window.html", "C6 · FOX-O Window"],
     ["c7-game-dash.html", "C7 · Game Dash"],
+    ["c8-editorial-split.html", "C8 · Editorial Split"],
     ["01-cinematic-crossfade.html", "01 · Cinematic Crossfade"],
     ["02-peek-carousel.html", "02 · Peek Carousel"],
     ["03-thumbnail-selector.html", "03 · Thumbnail Selector"],
