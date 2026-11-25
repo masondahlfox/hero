@@ -9,6 +9,8 @@
      the FOX "O" silhouette (Fox-o.svg). The O's counter (the slot) is the color field, and it fills with the dwell timer. */
   .stage { background: var(--field, #111); transition: background-color 1s var(--ease-inout); }
   .slide { position: absolute; inset: 0; }
+  /* Page nav stays visible: the real nav strip, screened so its black drops out over the color field */
+  .stage .page-nav { mix-blend-mode: screen; }
 
   /* Photo layer: full-stage, masked to the O. Mask size/position animate between window, bleed and travel states. */
   .win {
@@ -23,7 +25,7 @@
   .win .art > * { animation: kb 14s linear both; }
   @keyframes kb { from { transform: scale(1.1); } to { transform: scale(1); } }
   .win .scrim { opacity: 0; transition: opacity .8s var(--ease-std);
-    background: linear-gradient(90deg, rgba(0,0,0,.7) 0%, rgba(0,0,0,.35) 35%, rgba(0,0,0,0) 60%), linear-gradient(0deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 35%); }
+    background: linear-gradient(90deg, rgba(0,0,0,.7) 0%, rgba(0,0,0,.35) 35%, rgba(0,0,0,0) 60%), linear-gradient(0deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 35%), linear-gradient(180deg, rgba(0,0,0,.6) 0%, rgba(0,0,0,0) 16%); }
   .slide.bleed .win .scrim { opacity: 1; }
 
   /* The O's counter: a pill in the field color sitting over the photo, scaled with the window */
@@ -38,13 +40,11 @@
   .copy { position: absolute; inset: 0; z-index: 4; transition: opacity .45s var(--ease-std), transform .6s var(--ease-std); }
   .slide.out .copy { opacity: 0; transform: translateX(calc(var(--dir, 1) * -40px)); }
   .mono { font: 600 17px/1 "SF Mono", ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; }
-  .tl { position: absolute; left: 120px; top: 84px; display: flex; align-items: center; gap: 18px; }
+  .tl { position: absolute; left: 120px; top: 158px; display: flex; align-items: center; gap: 18px; }
   .pill { height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border: 2px solid rgba(255,255,255,.85); border-radius: 8px;
     font: 700 17px/1 var(--f-ui); letter-spacing: .02em; }
   .tl .mono { color: var(--ink-2); }
-  .tr { position: absolute; right: 120px; top: 74px; display: flex; align-items: center; gap: 14px; font: 900 20px/1 var(--f-ui); font-style: italic; letter-spacing: -.01em; }
-  .tr svg { width: 52px; height: 53px; fill: #fff; }
-  .status { position: absolute; left: 120px; top: 210px; display: flex; gap: 14px; align-items: center; }
+  .status { position: absolute; left: 120px; top: 222px; display: flex; gap: 14px; align-items: center; }
   .title { position: absolute; }
   .title img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 34px rgba(0,0,0,.4)); }
   .bl { position: absolute; left: 120px; bottom: 96px; width: 700px; display: flex; flex-direction: column; align-items: flex-start; }
@@ -52,8 +52,8 @@
   .bl .tagline { color: #fff; font-size: 30px; letter-spacing: -.005em; text-transform: none; font-weight: 800; }
   .bl .ctas { margin-top: 28px !important; }
   .bl .livebar__track { width: 300px; }
-  .coords { position: absolute; bottom: 56px; transform: translateX(-50%); white-space: nowrap; }
-  .br { position: absolute; right: 120px; bottom: 56px; color: var(--ink-2); }
+  .coords { position: absolute; bottom: 44px; transform: translateX(-50%); white-space: nowrap; }
+  .br { position: absolute; right: 120px; bottom: 44px; color: var(--ink-2); }
   .stagger > * { --delay: 520ms; }
 </style>
 </head>
@@ -68,7 +68,7 @@ const K = HeroKit.init({
   title: "C6 · FOX-O Window",
   notes: "Editorial poster layout. Each title gets a solid color field picked from its art, and the photo shows through the FOX-O silhouette. The O's counter is the color field and fills up as the dwell timer. Slides travel window-and-all; live opens full-bleed after 4s.",
   extraKeys: [["B", "Open / close the window (full-bleed)"]],
-  nav: false, rail: false,
+  rail: false,
 });
 
 /* Fox-o.svg (repo root), outer contour only: the counter is drawn as .slot so it can close for bleed.
@@ -78,7 +78,7 @@ const O_FULL = O_OUTER + "M718.562 874.365C718.562 936.254 673.225 981.591 613.1
 const MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1216.55 1239.94' preserveAspectRatio='none'><path d='${O_OUTER}'/></svg>`)}")`;
 
 /* Window geometry (stage px) */
-const H0 = 880, W0 = H0 * 1216.55 / 1239.94, CX = 1320, CY = 540, BLEED_K = 3.45;
+const H0 = 800, W0 = H0 * 1216.55 / 1239.94, CX = 1330, CY = 580, BLEED_K = 3.8;
 
 /* Per-title field color (picked from each title's art) + poster metadata line. Coordinates / schedule text is mock. */
 const POSTER = {
@@ -105,7 +105,6 @@ function build(i) {
     <div class="frame" style="left:${CX - W0 / 2}px;top:${CY - H0 / 2}px;width:${W0}px;height:${H0}px"><div class="slot"><i></i></div></div>
     <div class="copy">
       <div class="tl stagger"><span class="pill" style="--i:0">${d.typeLabel}</span><span class="mono" style="--i:1">No. ${pad2(i + 1)} / ${pad2(N)}</span></div>
-      <div class="tr"><svg viewBox="0 0 1217 1240"><path fill-rule="evenodd" d="${O_FULL}"/></svg>FOX ONE</div>
       <div class="status stagger"><span style="--i:1;display:flex;gap:14px">${status}</span></div>
       <div class="title stagger"><img style="--i:2" src="${d.logo}" alt="${d.logoAlt || ""}" draggable="false"></div>
       <div class="bl stagger">
@@ -121,10 +120,10 @@ function build(i) {
   const img = el.querySelector(".title img"), box = el.querySelector(".title");
   const fitLogo = () => {
     const ar = img.naturalWidth / img.naturalHeight || 2.5;
-    let w = Math.sqrt(205000 * ar), h = w / ar;
-    if (w > 980) { w = 980; h = w / ar; } if (h > 300) { h = 300; w = h * ar; }
+    let w = Math.sqrt(190000 * ar), h = w / ar;
+    if (w > 980) { w = 980; h = w / ar; } if (h > 280) { h = 280; w = h * ar; }
     const right = CX - W0 / 2 + 190;
-    Object.assign(box.style, { width: w + "px", height: h + "px", left: Math.max(120, right - w) + "px", top: 600 - h + "px" });
+    Object.assign(box.style, { width: w + "px", height: h + "px", left: Math.max(120, right - w) + "px", top: 620 - h + "px" });
   };
   img.complete && img.naturalWidth ? fitLogo() : img.addEventListener("load", fitLogo);
   el._d = d;
