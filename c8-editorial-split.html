@@ -12,11 +12,9 @@
      a huge condensed headline sits top-right with an inline trailer, and the next title peeks in from the right edge. */
   :root { --cond: "Oswald", "Bebas Neue", "Arial Narrow", Impact, sans-serif; }
   .stage { background: #000; }
-  .stage .page-nav { mix-blend-mode: screen; }   /* nav strip's black drops out over the art */
-  .stage .page-rail { z-index: 40; }
 
   .slides { position: absolute; inset: 0; z-index: 2; transition: opacity .35s var(--ease-std); }
-  .stage.z-rail .slides { opacity: .45; }
+  .stage.at-rail .slides { opacity: .45; }
   .slide { position: absolute; inset: 0; }
 
   /* Art opens like a curtain from the center line */
@@ -42,15 +40,13 @@
     display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
   .lock > * + * { margin-top: 24px; }
   .lock .logo img { max-width: 540px; max-height: 240px; }
-  .lock .meta { gap: 0; font-size: 22px; letter-spacing: .06em; color: var(--ink-2); }
-  .lock .meta span + span::before { content: "·"; margin: 0 14px; color: var(--ink-3); }
   .lock .ctas { margin-top: 38px !important; }
   .rise > * { opacity: 0; transform: translateY(24px); }
   .slide.is-in .rise > * { animation: rise .8s var(--ease-out) both; animation-delay: calc(.55s + var(--i) * 80ms); }
 
   /* Right column: condensed headline + inline trailer */
   .edit { position: absolute; z-index: 5; left: 1160px; top: 190px; width: 520px; }
-  .head { font: 700 124px/.9 var(--cond); text-transform: uppercase; letter-spacing: -.005em; }
+  .head { font: 400 124px/.9 var(--f-display); text-transform: uppercase; letter-spacing: -.005em; }
   .head .ln { display: block; overflow: hidden; padding: 4px 0; margin: -4px 0; }
   .head .ln > span { display: inline-block; white-space: nowrap; transform: translateY(110%);
     transition: transform 1s var(--ease-out); transition-delay: calc(.4s + var(--k) * 90ms); }
@@ -59,20 +55,20 @@
   .trail { display: flex; align-items: center; gap: 30px; margin-top: 54px; opacity: 0; transform: translateY(20px);
     transition: opacity .7s var(--ease-out) .85s, transform .7s var(--ease-out) .85s; }
   .slide.is-in .trail { opacity: 1; transform: none; }
-  .tthumb { position: relative; width: 224px; height: 126px; border-radius: 12px; overflow: hidden; flex: 0 0 auto;
+  .tthumb { position: relative; width: 224px; height: 126px; border-radius: var(--r-tile); overflow: hidden; flex: 0 0 auto;
     box-shadow: 0 14px 34px rgba(0,0,0,.55); outline: 4px solid transparent; outline-offset: 5px; transition: outline-color .2s, transform .25s var(--ease-std); }
   .tthumb img { width: 100%; height: 100%; object-fit: cover; }
   .tplay { display: flex; align-items: center; gap: 18px; }
   .ring { width: 76px; height: 76px; border-radius: 50%; border: 3px solid rgba(255,255,255,.9); display: grid; place-items: center;
     transition: background .2s, transform .25s var(--ease-std); }
   .ring svg { width: 26px; height: 26px; fill: #fff; margin-left: 5px; transition: fill .2s; }
-  .tlabel { font: 600 26px/1.1 var(--cond); text-transform: uppercase; letter-spacing: .05em; }
+  .tlabel { font: 400 30px/1.05 var(--f-display); text-transform: uppercase; letter-spacing: .05em; }
   .trail.is-focused .ring { background: #fff; transform: scale(1.1); }
   .trail.is-focused .ring svg { fill: #000; }
   .trail.is-focused .tthumb { outline-color: #fff; transform: scale(1.04); }
 
   /* Right edge: a peek of the next title, with the dwell timer running down its left edge */
-  .peek { position: absolute; z-index: 6; left: 1764px; top: 236px; width: 380px; height: 600px; border-radius: 18px; overflow: hidden;
+  .peek { position: absolute; z-index: 6; left: 1764px; top: 236px; width: 380px; height: 600px; border-radius: var(--r-tile); overflow: hidden;
     background: #111; box-shadow: -20px 0 60px rgba(0,0,0,.6); outline: 4px solid transparent; outline-offset: 5px;
     transform: translateX(140px); opacity: 0; transition: transform .9s var(--ease-out), opacity .6s var(--ease-std), outline-color .2s; }
   .peek.is-in { transform: none; opacity: 1; transition-delay: .5s, .5s, 0s; }
@@ -96,7 +92,6 @@
 <div class="viewport"><div class="stage" id="stage">
   <div class="slides" id="slides"></div>
   <div class="ptimer" id="ptimer"><i></i></div>
-  <div class="fring" id="fring"></div>
 </div></div>
 
 <script src="shared/data.js"></script>
@@ -105,8 +100,9 @@
 <script>
 const K = HeroKit.init({
   title: "C8 · Editorial Split",
-  notes: "An editorial split. The art opens from the center line like a curtain, the lockup holds the left column, and a huge condensed headline sits top-right with an inline trailer. A peek of the next title sits on the right edge, with the dwell timer running down beside it. Focus starts on the primary CTA; Right goes to + then the trailer; Right again brings the peeked title into the hero with focus on its primary CTA. The peek never takes focus. Down goes to the rail, Up to the nav.",
-  extraKeys: [["↑ ↓", "Nav / hero / rail"], ["Enter", "Select focused item"]],
+  notes: "An editorial split. The art opens from the center line like a curtain, the lockup holds the left column, and a huge condensed headline sits top-right with an inline trailer. A peek of the next title sits on the right edge, with the dwell timer running down beside it. Focus starts on the primary CTA; Right goes to +, the bell, then the trailer; Right again brings the peeked title into the hero with focus on its primary CTA. The peek never takes focus. Down goes to the rail, Up to the nav.",
+  // Hero focus row = Watch · + · bell · inline trailer; the shared D-pad model pages past the trailer
+  heroItems: () => (cur ? [...cur.querySelectorAll(".ctas .btn, .trail")] : []),
 });
 
 const D = K.data;
@@ -117,8 +113,7 @@ const HEAD = {
   "fc-juarez": ["Bravos", "de Juárez"],
   "fox-soul": ["Black", "Culture", "Always On"],
 };
-const NAV = [[656, 62], [740, 113], [893, 78], [1006, 90], [1128, 128], [1736, 62]]; // search, home, live, hubs, my stuff, profile
-const slidesEl = document.getElementById("slides"), ring = document.getElementById("fring");
+const slidesEl = document.getElementById("slides");
 
 const timer = document.getElementById("ptimer");
 let peek = null;
@@ -133,11 +128,6 @@ function showPeek(i) {
   if (old) { old.classList.remove("is-focused"); old.classList.add("is-out"); setTimeout(() => old.remove(), 1000); }
 }
 
-function badge(it) {
-  if (it.type === "live") return `<span class="badge badge--live"><span class="dot"></span>Live</span>`;
-  if (it.status && /new/i.test(it.status.badge)) return `<span class="badge badge--new">${it.status.badge}</span>`;
-  return "";
-}
 function bgMedia(it) {
   const a = it.art;
   return a.kind === "video"
@@ -145,13 +135,9 @@ function bgMedia(it) {
     : `<img src="${a.src}" alt="">`;
 }
 function slideHTML(it) {
-  const meta = it.meta.filter((m) => !/^(live|replay)$/i.test(m)).slice(0, 3);
   const thumb = it.art.still || it.art.poster || it.art.src;
-  const lockParts = [badge(it),
-    `<div class="logo"><img src="${it.logo}" alt="${it.logoAlt || ""}" draggable="false"></div>`,
-    `<div class="meta">${meta.map((m) => `<span>${m}</span>`).join("")}</div>`,
-    `<div class="ctas"><span class="btn" data-f="0">${K.ICONS[it.ctas[0].icon]}${it.ctas[0].label}</span><span class="btn btn--sq" data-f="1" title="My Stuff">${K.ICONS.plus}</span></div>`,
-  ].filter(Boolean).map((p, i) => p.replace(/^<(\w+) /, `<$1 style="--i:${i}" `));
+  const lockParts = [K.ui.title(it), K.ui.metaRow(it), K.ui.ctas(it)]
+    .map((p, i) => p.replace(/^<(\w+) /, `<$1 style="--i:${i}" `));
   return `
     <div class="bg" style="--fx:${(it.focusX ?? .5) * 100}%">${bgMedia(it)}<div class="shade"></div></div>
     <div class="seam"></div>
@@ -159,7 +145,7 @@ function slideHTML(it) {
       <div class="lock rise">${lockParts.join("")}</div>
       <div class="edit">
         <div class="head">${HEAD[it.id].map((l, k) => `<span class="ln"><span style="--k:${k}">${l}</span></span>`).join("")}</div>
-        <div class="trail" data-f="2">
+        <div class="trail">
           <div class="tthumb"><img src="${thumb}" alt=""></div>
           <div class="tplay"><span class="ring">${K.ICONS.play}</span><span class="tlabel">Watch<br>${it.type === "live" ? "Highlights" : "Trailer"}</span></div>
         </div>
@@ -173,38 +159,7 @@ function fitHead(el) {
   head.style.fontSize = Math.min(max, max * 520 / w) + "px";
 }
 
-/* ---------- Focus model: zone = nav | hero | rail ---------- */
-let zone = "hero", hf = 0, nf = 1, rf = 0, cur = null;
-function paintFocus() {
-  K.stage.classList.toggle("z-rail", zone === "rail");
-  if (cur) cur.querySelectorAll("[data-f]").forEach((el) => el.classList.toggle("is-focused", zone === "hero" && +el.dataset.f === hf));
-  let r = null;
-  if (zone === "nav") { const [x, w] = NAV[nf]; r = [x - 6, 30, w + 12, 72]; }
-  if (zone === "rail") r = [120 + rf * 284 - 8, 970, 268, 130];
-  ring.classList.toggle("on", !!r);
-  if (r) Object.assign(ring.style, { left: r[0] + "px", top: r[1] + "px", width: r[2] + "px", height: r[3] + "px" });
-}
-function press() {
-  const el = zone === "hero" && cur && cur.querySelector(`[data-f="${hf}"]`);
-  if (!el) return;
-  el.classList.remove("pressed"); void el.offsetWidth; el.classList.add("pressed");
-}
-
-K.onKey((e) => {
-  const k = e.key;
-  if (k === "ArrowUp") { if (zone === "rail") zone = "hero"; else if (zone === "hero") zone = "nav"; paintFocus(); return true; }
-  if (k === "ArrowDown") { if (zone === "nav") { zone = "hero"; hf = 0; } else if (zone === "hero") zone = "rail"; paintFocus(); return true; }
-  if (k === "ArrowRight" || k === "ArrowLeft") {
-    const d = k === "ArrowRight" ? 1 : -1;
-    if (zone === "nav") nf = Math.max(0, Math.min(NAV.length - 1, nf + d));
-    else if (zone === "rail") rf = Math.max(0, Math.min(5, rf + d));
-    else if (hf + d > 2) { K.rot.next(true); return true; }       // Right past the trailer → next title takes the hero, focus on its primary CTA
-    else if (hf + d < 0) { K.rot.prev(true); return true; }       // Left past the primary CTA → previous title
-    else { hf += d; K.rot.restartTimer(); }
-    paintFocus(); return true;
-  }
-  if (k === "Enter") { press(); return true; }
-});
+let cur = null;
 
 /* ---------- Slides ---------- */
 function show(i, prev, dir) {
@@ -213,10 +168,9 @@ function show(i, prev, dir) {
   el.className = "slide";
   el.innerHTML = slideHTML(D[i]);
   slidesEl.appendChild(el);
-  cur = el; hf = 0;
+  cur = el;
   fitHead(el);
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => fitHead(el));
-  paintFocus();
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("is-in")));
   const v = el.querySelector("video"); if (v) v.play().catch(() => {});
   if (old) {

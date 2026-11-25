@@ -203,6 +203,7 @@
     const tiles = () => [...stage.querySelectorAll(".rail-tiles .tile-p")];
     const visible = (el) => el.checkVisibility ? el.checkVisibility({ opacityProperty: true, visibilityProperty: true }) : !!el.offsetParent;
     function heroBtns() {
+      if (opts.heroItems) return opts.heroItems();   // concept-supplied focus row (e.g. CTAs + an inline trailer)
       const groups = [...stage.querySelectorAll(".ctas")].filter((g) => !g.closest(".page-rail") && visible(g) && !g.closest(".out, .is-prev, .is-out"));
       const g = groups[groups.length - 1];
       return g ? [...g.querySelectorAll(".btn")] : [];
@@ -216,7 +217,8 @@
       stage.classList.toggle("hero-focus", st.zone === "hero");
       if (st.zone === "hero" && mode === "ctas") {
         // Every rendered CTA row mirrors the focused index, so crossfading slides never flash the wrong state
-        stage.querySelectorAll(".ctas").forEach((g) => { const b = g.querySelectorAll(".btn"); const n = Math.min(st.cta, b.length - 1); if (b[n]) b[n].classList.add("is-focused"); });
+        if (opts.heroItems) { const b = opts.heroItems(); const n = Math.min(st.cta, b.length - 1); if (b[n]) b[n].classList.add("is-focused"); }
+        else stage.querySelectorAll(".ctas").forEach((g) => { const b = g.querySelectorAll(".btn"); const n = Math.min(st.cta, b.length - 1); if (b[n]) b[n].classList.add("is-focused"); });
       } else if (st.zone === "nav") { const n = navEls(); n[st.nav] && n[st.nav].classList.add("is-focused"); }
       else if (st.zone === "rail") {
         const t = tiles(); st.tile = Math.min(st.tile, t.length - 1); t[st.tile] && t[st.tile].classList.add("is-focused");
