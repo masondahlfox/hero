@@ -12,6 +12,7 @@
     ["c9-spine-shelf.html", "C9 · Spine Shelf"],
     ["c10-film-gate.html", "C10 · Film Gate"],
     ["c11-long-exposure.html", "C11 · Long Exposure"],
+    ["c12-signal-hue.html", "C12 · Signal Hue"],
     ["01-cinematic-crossfade.html", "01 · Cinematic Crossfade"],
     ["02-peek-carousel.html", "02 · Peek Carousel"],
     ["03-thumbnail-selector.html", "03 · Thumbnail Selector"],
