@@ -1,4 +1,4 @@
-/* HeroFocus — kept for C9–C11. It now hands their CTA row to the shared D-pad model in stage.js
+/* HeroFocus — kept for C9, C12 and C13. It now hands their CTA row to the shared D-pad model in stage.js
    (HeroKit.focus), so every concept focuses the same way:
      hero:  ← → across the CTAs; → past the last brings the next title into the hero, focus on its primary CTA;
             ← past the first brings back the previous one. Nothing in the margins or the peek takes focus.
