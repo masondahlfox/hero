@@ -6,8 +6,6 @@ Open `index.html` in Chrome or Safari. Everything runs locally from `file://` wi
 | File | What it is |
 |---|---|
 | `c1-magnify-conveyor.html` | Bell-curve "dock" conveyor on a shared baseline (from the Over-Stimulated reference). Uses the vertical asset. |
-| `c2-title-portal.html` | Title art as a mask/window onto the feed, then a dive through the lettering into full-bleed. |
-| `c3-now-line.html` | Log-scaled timeline anchored to NOW; art scrubs open from the item's moment in time. |
 | `c5-depth-queue.html` | Rotation as a 3D queue; the camera flies forward through it. |
 | `c6-fox-o-window.html` | Editorial poster: per-title color field, photo seen through the FOX-O silhouette (`Fox-o.svg`), title hung over the window edge. |
 | `c7-game-dash.html` | Game-console dashboard: full-bleed backdrop, tile row with a glowing focus ring (← → move along it, OK plays), minimal metadata and ambient particles under the FOX One nav. |

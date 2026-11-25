@@ -2,8 +2,6 @@
 (function () {
   const OPTIONS = [
     ["c1-magnify-conveyor.html", "C1 · Magnify Conveyor"],
-    ["c2-title-portal.html", "C2 · Title Portal"],
-    ["c3-now-line.html", "C3 · Now Line"],
     ["c5-depth-queue.html", "C5 · Depth Queue"],
     ["c6-fox-o-window.html", "C6 · FOX-O Window"],
     ["c7-game-dash.html", "C7 · Game Dash"],
