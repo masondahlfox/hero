@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C6 · FOX-O Window — Fox One Multi-Hero</title>
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  /* Editorial poster layout: a solid color field per title, with the photo showing through
+     the FOX "O" silhouette (Fox-o.svg). The O's counter (the slot) is the color field, and it fills with the dwell timer. */
+  .stage { background: var(--field, #111); transition: background-color 1s var(--ease-inout); }
+  .slide { position: absolute; inset: 0; }
+
+  /* Photo layer: full-stage, masked to the O. Mask size/position animate between window, bleed and travel states. */
+  .win {
+    position: absolute; inset: 0; z-index: 2;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    transition: -webkit-mask-size var(--dur, 1.1s) var(--ez, var(--ease-inout)), -webkit-mask-position var(--dur, 1.1s) var(--ez, var(--ease-inout)),
+                mask-size var(--dur, 1.1s) var(--ez, var(--ease-inout)), mask-position var(--dur, 1.1s) var(--ez, var(--ease-inout)),
+                opacity .6s var(--ease-std);
+  }
+  .win .pan { position: absolute; inset: 0; transition: transform var(--dur, 1.1s) var(--ez, var(--ease-inout)); }
+  .win .art { overflow: hidden; }
+  .win .art > * { animation: kb 14s linear both; }
+  @keyframes kb { from { transform: scale(1.1); } to { transform: scale(1); } }
+  .win .scrim { opacity: 0; transition: opacity .8s var(--ease-std);
+    background: linear-gradient(90deg, rgba(0,0,0,.7) 0%, rgba(0,0,0,.35) 35%, rgba(0,0,0,0) 60%), linear-gradient(0deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 35%); }
+  .slide.bleed .win .scrim { opacity: 1; }
+
+  /* The O's counter: a pill in the field color sitting over the photo, scaled with the window */
+  .frame { position: absolute; z-index: 3; pointer-events: none; transform-origin: 50% 50%;
+    transition: transform var(--dur, 1.1s) var(--ez, var(--ease-inout)), opacity .6s var(--ease-std); }
+  .slot { position: absolute; left: 41.585%; top: 20.807%; width: 17.48%; height: 58.358%; border-radius: 999px; overflow: hidden;
+    background: var(--field); transition: transform .9s var(--ease-inout), background-color 1s var(--ease-inout); transform-origin: 50% 50%; }
+  .slot i { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: rgba(255,255,255,.2); }
+  .slide.bleed .slot { transform: scale(0, .2); }
+
+  /* Copy */
+  .copy { position: absolute; inset: 0; z-index: 4; transition: opacity .45s var(--ease-std), transform .6s var(--ease-std); }
+  .slide.out .copy { opacity: 0; transform: translateX(calc(var(--dir, 1) * -40px)); }
+  .mono { font: 600 17px/1 "SF Mono", ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; }
+  .tl { position: absolute; left: 120px; top: 84px; display: flex; align-items: center; gap: 18px; }
+  .pill { height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border: 2px solid rgba(255,255,255,.85); border-radius: 8px;
+    font: 700 17px/1 var(--f-ui); letter-spacing: .02em; }
+  .tl .mono { color: var(--ink-2); }
+  .tr { position: absolute; right: 120px; top: 74px; display: flex; align-items: center; gap: 14px; font: 900 20px/1 var(--f-ui); font-style: italic; letter-spacing: -.01em; }
+  .tr svg { width: 52px; height: 53px; fill: #fff; }
+  .status { position: absolute; left: 120px; top: 210px; display: flex; gap: 14px; align-items: center; }
+  .title { position: absolute; }
+  .title img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 34px rgba(0,0,0,.4)); }
+  .bl { position: absolute; left: 120px; bottom: 96px; width: 700px; display: flex; flex-direction: column; align-items: flex-start; }
+  .bl > * + * { margin-top: 18px; }
+  .bl .tagline { color: #fff; font-size: 30px; letter-spacing: -.005em; text-transform: none; font-weight: 800; }
+  .bl .ctas { margin-top: 28px !important; }
+  .bl .livebar__track { width: 300px; }
+  .coords { position: absolute; bottom: 56px; transform: translateX(-50%); white-space: nowrap; }
+  .br { position: absolute; right: 120px; bottom: 56px; color: var(--ink-2); }
+  .stagger > * { --delay: 520ms; }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage"><div id="slides"></div></div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/art.js"></script>
+<script src="shared/stage.js"></script>
+<script>
+const K = HeroKit.init({
+  title: "C6 · FOX-O Window",
+  notes: "Editorial poster layout. Each title gets a solid color field picked from its art, and the photo shows through the FOX-O silhouette. The O's counter is the color field and fills up as the dwell timer. Slides travel window-and-all; live opens full-bleed after 4s.",
+  extraKeys: [["B", "Open / close the window (full-bleed)"]],
+  nav: false, rail: false,
+});
+
+/* Fox-o.svg (repo root), outer contour only: the counter is drawn as .slot so it can close for bleed.
+   Embedded as a data URI because Chrome blocks CSS mask images loaded from file://. */
+const O_OUTER = "M1216.55 619.971C1216.55 276.342 943.81 0 607.378 0C270.945 0 0 276.342 0 619.971C0 963.6 272.744 1239.94 607.378 1239.94C942.011 1239.94 1216.55 963.6 1216.55 619.971Z";
+const O_FULL = O_OUTER + "M718.562 874.365C718.562 936.254 673.225 981.591 613.135 981.591C553.045 981.591 505.908 936.254 505.908 874.365V365.218C505.908 303.329 551.246 257.992 611.336 257.992C671.426 257.992 718.562 303.329 718.562 365.218V874.365Z";
+const MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1216.55 1239.94' preserveAspectRatio='none'><path d='${O_OUTER}'/></svg>`)}")`;
+
+/* Window geometry (stage px) */
+const H0 = 880, W0 = H0 * 1216.55 / 1239.94, CX = 1320, CY = 540, BLEED_K = 3.45;
+
+/* Per-title field color (picked from each title's art) + poster metadata line. Coordinates / schedule text is mock. */
+const POSTER = {
+  "eagles-cowboys": { field: "#0b4a50", coords: "39.9008° N, 75.1675° W · Philadelphia" },
+  "best-medicine":  { field: "#d97a2b", coords: "New episodes · Tuesdays 8/7c" },
+  "accused":        { field: "#5a1d2a", coords: "Season 2 · Tuesdays 9/8c" },
+  "fc-juarez":      { field: "#14955a", coords: "31.7383° N, 106.4535° W · Ciudad Juárez" },
+  "fox-soul":       { field: "#2f45e6", coords: "Free · 24/7 · FOX One" },
+};
+
+const stage = K.stage, host = document.getElementById("slides"), N = K.data.length;
+const pad2 = (n) => String(n).padStart(2, "0");
+let cur = null, bleedManual = null;
+
+function build(i) {
+  const d = K.data[i], P = POSTER[d.id];
+  const el = document.createElement("div"); el.className = "slide";
+  const status = d.type === "live"
+    ? `<span class="badge badge--live"><span class="dot"></span>${d.status.badge}</span>
+       <span class="score"><span class="score__t" style="--c:${d.score.away.color}">${d.score.away.abbr} <em>${d.score.away.score}</em></span><span class="score__t" style="--c:${d.score.home.color}">${d.score.home.abbr} <em>${d.score.home.score}</em></span><span class="score__clock">${d.score.clock}</span></span>`
+    : d.status ? `<span class="badge badge--${d.status.kind || "new"}">${d.status.badge}</span>` : "";
+  el.innerHTML = `
+    <div class="win"><div class="pan"><div class="art">${K.art(d)}</div></div><div class="scrim"></div></div>
+    <div class="frame" style="left:${CX - W0 / 2}px;top:${CY - H0 / 2}px;width:${W0}px;height:${H0}px"><div class="slot"><i></i></div></div>
+    <div class="copy">
+      <div class="tl stagger"><span class="pill" style="--i:0">${d.typeLabel}</span><span class="mono" style="--i:1">No. ${pad2(i + 1)} / ${pad2(N)}</span></div>
+      <div class="tr"><svg viewBox="0 0 1217 1240"><path fill-rule="evenodd" d="${O_FULL}"/></svg>FOX ONE</div>
+      <div class="status stagger"><span style="--i:1;display:flex;gap:14px">${status}</span></div>
+      <div class="title stagger"><img style="--i:2" src="${d.logo}" alt="${d.logoAlt || ""}" draggable="false"></div>
+      <div class="bl stagger">
+        <div class="tagline" style="--i:3">${d.tagline}</div>
+        <div class="meta" style="--i:4">${d.meta.map((m, k) => k === 0 ? `<span class="net">${m}</span>` : `<span>${m}</span>`).join("")}</div>
+        ${d.live ? `<div style="--i:5">${K.livebar(d)}</div>` : ""}
+        <div class="ctas" style="--i:6">${d.ctas.map((c, k) => k === 0 ? `<span class="btn is-focused">${K.ICONS[c.icon]}${c.label}</span>` : `<span class="btn btn--sq">${K.ICONS[c.icon]}</span>`).join("")}</div>
+      </div>
+      <div class="coords mono stagger" style="left:${CX}px"><span style="--i:5;display:block">${P.coords}</span></div>
+      <div class="br mono stagger"><span style="--i:6;display:block">${d.shortLabel}</span></div>
+    </div>`;
+  /* Title art: normalise by area so wide and tall logos read at similar weight, then hang it over the window's left edge */
+  const img = el.querySelector(".title img"), box = el.querySelector(".title");
+  const fitLogo = () => {
+    const ar = img.naturalWidth / img.naturalHeight || 2.5;
+    let w = Math.sqrt(205000 * ar), h = w / ar;
+    if (w > 980) { w = 980; h = w / ar; } if (h > 300) { h = 300; w = h * ar; }
+    const right = CX - W0 / 2 + 190;
+    Object.assign(box.style, { width: w + "px", height: h + "px", left: Math.max(120, right - w) + "px", top: 600 - h + "px" });
+  };
+  img.complete && img.naturalWidth ? fitLogo() : img.addEventListener("load", fitLogo);
+  el._d = d;
+  return el;
+}
+
+/* k = window scale, dx = horizontal travel, bleed = O opened past the frame */
+function geo(el, { k = 1, dx = 0, bleed = false, dur, ez, instant } = {}) {
+  if (bleed) { k = BLEED_K; dx = 0; }
+  const w = W0 * k, h = H0 * k, x = CX + dx - w / 2, y = CY - h / 2;
+  const win = el.querySelector(".win"), pan = el.querySelector(".pan"), frame = el.querySelector(".frame");
+  [win, pan, frame].forEach((n) => {
+    n.style.transition = instant ? "none" : "";
+    if (dur) n.style.setProperty("--dur", dur); else n.style.removeProperty("--dur");
+    if (ez) n.style.setProperty("--ez", ez); else n.style.removeProperty("--ez");
+  });
+  win.style.webkitMaskImage = win.style.maskImage = MASK;
+  win.style.webkitMaskSize = win.style.maskSize = `${w}px ${h}px`;
+  win.style.webkitMaskPosition = win.style.maskPosition = `${x}px ${y}px`;
+  /* In window mode the photo is centred on the O; opened up it sits at its natural full-frame position */
+  pan.style.transform = `translateX(${bleed ? 0 : CX + dx - 960}px)`;
+  frame.style.transform = `translateX(${dx}px) scale(${k})`;
+  el.classList.toggle("bleed", bleed);
+  el._bleed = bleed;
+}
+
+function setBleed(on) {
+  if (!cur || cur._bleed === on) return;
+  geo(cur, { bleed: on, dur: on ? "1.5s" : "1.1s" });
+}
+
+function show(i, prev, dir = 1) {
+  const d = K.data[i];
+  stage.style.setProperty("--field", POSTER[d.id].field);
+  bleedManual = null;
+
+  if (cur) {
+    const old = cur; old.style.setProperty("--dir", dir); old.classList.add("out");
+    old.style.zIndex = 1;
+    geo(old, { k: .55, dx: -dir * 1500, dur: "1.15s" });
+    old.querySelector(".win").style.opacity = 0; old.querySelector(".frame").style.opacity = 0;
+    setTimeout(() => old.remove(), 1300);
+  }
+  const el = build(i); el.style.zIndex = 2; host.append(el);
+  geo(el, { k: .55, dx: dir * 1300, instant: true });
+  void el.offsetWidth;
+  geo(el, { k: 1, dx: 0, dur: prev === undefined ? "1.2s" : "1.25s", ez: "cubic-bezier(.16, 1, .3, 1)" });
+  el.classList.add("is-active");
+  cur = el;
+  K.syncVideos(el);
+}
+
+K.onKey((e) => {
+  if (e.key === "b" || e.key === "B") { bleedManual = !(cur && cur._bleed); setBleed(bleedManual); K.rot.restartTimer(); return true; }
+});
+
+K.rot = K.Rotator({
+  count: N, minGap: 750,
+  durationFor: (i) => K.data[i].dwell || 8000,
+  onChange: (i, prev, dir) => show(i, prev, dir),
+  onTick: (p, i, elapsed) => {
+    if (!cur) return;
+    cur.querySelector(".slot i").style.height = (p * 100).toFixed(2) + "%";
+    /* Live: the window opens full-bleed after 4s ("it's on now"), unless B overrode it */
+    if (K.data[i].type === "live" && bleedManual === null && elapsed > 4000 && !cur._bleed) setBleed(true);
+  },
+});
+show(0);
+K.refreshHud();
+</script>
+</body>
+</html>

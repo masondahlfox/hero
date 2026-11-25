@@ -111,6 +111,7 @@
         <kbd>↑ ↓</kbd><span>07: step through the index</span>
         <kbd>Enter</kbd><span>C2: dive through the title now</span>
         <kbd>M · T</kbd><span>C1: marquee mode · light editorial theme</span>
+        <kbd>B</kbd><span>C6: open / close the window (full-bleed)</span>
         <kbd>N · R</kbd><span>Toggle page nav · next-rail context</span>
         <kbd>S</kbd><span>Safe zones (5% action, 10% title, card pad)</span>
         <kbd>G</kbd><span>12-column grid</span>
@@ -151,6 +152,8 @@ const CONCEPTS = [
     tr: "0.95s layout morph, staggered", tx: "Facet tiles swap mid-morph", best: "Making live / show / special feel different", cost: 2 },
   { f: "c5-depth-queue.html", th: "c5", t: "Depth Queue", tag: "Spatial", d: "The rotation is a physical queue receding into depth. Advancing flies the camera forward: the current title rushes past the lens and the next settles into focus.",
     tr: "1.35s z-axis fly-through", tx: "Slides in from left", best: "Making 'what's next' visible", cost: 2 },
+  { f: "c6-fox-o-window.html", th: "c6", t: "FOX-O Window", tag: "Editorial poster", d: "Each title gets a solid color field picked from its art, and the photo shows through the FOX-O silhouette. The O's counter is the color field and fills as the dwell timer. Live opens the window full-bleed after 4s.",
+    tr: "1.25s window travel + field color morph", tx: "Title art hangs over the window edge", best: "Brand-forward rotation; editorial feel", cost: 2 },
 ];
 const card = (o, thumb, num) => `
   <a class="opt" href="${o.f}">
