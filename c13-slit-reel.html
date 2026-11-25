@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="shared/base.css">
 <style>
   /* A scrolling bookshelf of slits. The focused title is always open as a wide panel INSIDE the shelf,
-     with grey slits on both sides, so moving between titles is one short accordion step: the open panel
+     with dimmed slits on both sides, so moving between titles is one short accordion step: the open panel
      narrows back into a slit while the next slit widens into the panel and the shelf slides one place.
      It never leaves for full screen. The next title (right of the panel) shows in colour as the peek. */
   .stage { background: #0c0c0c; }
@@ -16,8 +16,8 @@
         transition: left .8s var(--ease-inout), width .8s var(--ease-inout), opacity .6s var(--ease-std); }
   .sl.new { opacity: 0; }
   .sl > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--fx, 50%) 50%;
-              filter: grayscale(1) brightness(.6) contrast(1.06); transition: filter .8s var(--ease-inout); }
-  .sl.next > img, .sl.open > img { filter: none; }
+              filter: brightness(.55); transition: filter .8s var(--ease-inout); }
+  .sl.open > img { filter: none; }
   /* open panel: the title's video / key art fades in on top once it has opened */
   .sl .vid { position: absolute; inset: 0; opacity: 0; transition: opacity .7s var(--ease-std); }
   .sl .vid .art { position: absolute; inset: 0; }
@@ -33,19 +33,22 @@
   .sl.next .badge { opacity: 1; }
 
   /* Lockup sits inside the open panel */
-  .copy { position: absolute; z-index: 20; left: 508px; bottom: 314px; width: 900px; display: flex; flex-direction: column; align-items: flex-start;
+  .copy { position: absolute; z-index: 20; left: 508px; bottom: 400px; width: 900px; display: flex; flex-direction: column; align-items: flex-start;
           opacity: 0; transform: translateY(10px); transition: opacity .6s var(--ease-std), transform .7s var(--ease-out); }
   .copy.is-in { opacity: 1; transform: none; transition-delay: .35s; }
   .copy.out { opacity: 0; transform: none; transition: opacity .35s var(--ease-std); transition-delay: 0s; }
   .copy > * + * { margin-top: 16px; }
   .copy .logo img { max-width: 480px; max-height: 140px; }
-  .copy .ctas { margin-top: 26px !important; }
+  /* The button row stays put while titles change under it, so the chevron can be pressed again and again */
+  .row { position: absolute; z-index: 21; left: 508px; bottom: 314px; display: flex; }
+  .row .btn--primary span { transition: opacity .35s var(--ease-std); }
 </style>
 </head>
 <body>
 <div class="viewport"><div class="stage" id="stage">
   <div class="shelf" id="shelf"></div>
   <div id="copyHost"></div>
+  <div class="row" id="row"></div>
   <div class="grain"></div>
 </div></div>
 
@@ -56,8 +59,8 @@
 <script>
 const K = HeroKit.init({
   title: "C13 · Slit Reel",
-  notes: "A scrolling bookshelf of slits. The focused title is open as a wide panel inside the shelf, with grey slits on both sides; the next title, right of the panel, shows in colour as the peek. → past the last button is one short accordion step: the panel narrows into a slit, the next slit widens into the panel and the shelf slides one place. It never goes full screen and never auto-advances.",
-  extraKeys: [["→ past 🔔", "Next title opens in the shelf"]],
+  notes: "The bell is replaced by a › chevron: OK on it opens the next title and focus stays on it, so repeated OKs scroll quickly through the shelf. A scrolling bookshelf of full-colour slits, dimmed except the open one. The focused title is open as a wide panel inside the shelf, with slits on both sides; the next title's logo shows on the slit right of the panel as the peek. → past the last button is one short accordion step: the panel narrows into a slit, the next slit widens into the panel and the shelf slides one place. It never goes full screen and never auto-advances.",
+  extraKeys: [["OK on ›", "Next title, focus stays on ›"], ["→ past ›", "Next title, focus on Watch"]],
 });
 
 const N = K.data.length;
@@ -65,7 +68,7 @@ const shelf = document.getElementById("shelf"), copyHost = document.getElementBy
 const D = (v) => K.data[((v % N) + N) % N];
 const still = (d) => d.art.kind === "video" ? (d.art.still || d.art.poster) : d.art.src;
 
-/* Shelf geometry (stage px): grey slits 96 wide, the open panel 1100, the next (peek) slit 150 */
+/* Shelf geometry (stage px): dimmed slits 96 wide, the open panel 1100, the next (peek) slit 150 */
 const SW = 96, NW = 150, G = 12, PW = 1100, PX = 444, K_MIN = -5, K_MAX = 6;
 function geo(k) {                       // k = slot relative to the open title
   if (k === 0) return [PX, PW];
@@ -104,7 +107,7 @@ function layout(instant) {
 
 let openEl = null, liveT = 0;
 function open(vi) {
-  if (openEl) {                                         // the old panel drops its video and greys back into a slit
+  if (openEl) {                                         // the old panel drops its video and dims back into a slit
     const o = openEl; o.classList.remove("open", "live");
     setTimeout(() => { if (!o.classList.contains("open")) o.querySelector(".vid").innerHTML = ""; }, 800);
   }
@@ -115,7 +118,19 @@ function open(vi) {
   liveT = setTimeout(() => { el.classList.add("live"); K.syncVideos(el); }, 500);   // footage fades in as the panel finishes opening
 }
 
-let focus = null;
+/* Persistent button row: Watch · + · › (next). Only the Watch label changes per title. */
+K.ICONS.chevR = '<svg class="st" viewBox="0 0 24 24"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>';
+const row = document.getElementById("row");
+row.innerHTML = `<div class="ctas"><span class="btn btn--primary">${K.ICONS.play}<span class="lbl"></span></span>
+  <span class="btn btn--round" title="My Stuff">${K.ICONS.plus}</span><span class="btn btn--round" title="Next">${K.ICONS.chevR}</span></div>`;
+const lbl = row.querySelector(".lbl");
+function setLabel(t) {
+  if (lbl.textContent === t) return;
+  if (!lbl.textContent) { lbl.textContent = t; return; }
+  lbl.style.opacity = 0; setTimeout(() => { lbl.textContent = t; lbl.style.opacity = 1; }, 300);
+}
+
+let focus = null, viaChev = false;
 function show(i, prev, dir = 1) {
   if (prev !== undefined) v += dir;
   layout(prev === undefined);
@@ -123,17 +138,25 @@ function show(i, prev, dir = 1) {
   const old = copyHost.querySelector(".copy:not(.out)");
   if (old) { old.classList.add("out"); setTimeout(() => old.remove(), 400); }
   const d = D(v);
-  copyHost.insertAdjacentHTML("beforeend", `<div class="copy">${K.ui.title(d)}${K.ui.metaRow(d)}${d.tagline ? `<div class="tagline">${d.tagline}</div>` : ""}${K.ui.ctas(d)}</div>`);
+  copyHost.insertAdjacentHTML("beforeend", `<div class="copy">${K.ui.title(d)}${K.ui.metaRow(d)}${d.tagline ? `<div class="tagline">${d.tagline}</div>` : ""}</div>`);
+  setLabel(d.ctas[0].label);
   const c = copyHost.lastElementChild; requestAnimationFrame(() => requestAnimationFrame(() => c.classList.add("is-in")));
-  focus && focus.refresh();
+  if (focus && !viaChev) focus.refresh();   // → past the chevron lands on Watch; OK on the chevron keeps focus on it
 }
 
+// OK on the chevron: next title, focus stays on the chevron
+K.onKey((e) => {
+  if (e.key !== "Enter" || K.zone !== "hero" || K.focus.cta !== 2) return false;
+  viaChev = true; K.rot.next(true); viaChev = false; K.focus.refresh();
+  return true;
+});
+
 K.rot = K.Rotator({
-  count: N, minGap: 500,
+  count: N, minGap: 300,
   durationFor: () => Infinity,          // stays on the current title until → past the last button
   onChange: (i, prev, dir) => show(i, prev, dir),
 });
-focus = HeroFocus.init(K, { ctas: () => [...copyHost.querySelectorAll(".copy:not(.out) .btn")] });
+focus = HeroFocus.init(K, { ctas: () => [...row.querySelectorAll(".btn")] });
 show(0);
 K.refreshHud && K.refreshHud();
 </script>
