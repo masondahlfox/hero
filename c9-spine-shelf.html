@@ -68,24 +68,10 @@ const SLOTS = [
 ];
 const still = (d) => d.art.kind === "video" ? (d.art.still || d.art.poster) : d.art.src;
 
-function badge(d) {
-  if (d.type === "live") return `<span class="badge badge--live"><span class="dot"></span>Live</span>`;
-  return d.status ? `<span class="badge badge--new">${d.status.badge}</span>` : "";
-}
-/* Primary CTA first, then the square actions; + (My Stuff) is always last so → ends on it */
-function ctaHtml(d) {
-  const list = d.ctas.some((c) => c.icon === "plus") ? d.ctas : [...d.ctas, { icon: "plus", label: "My Stuff" }];
-  return list.map((c, k) => k === 0 ? `<span class="btn is-focused">${K.ICONS[c.icon]}${c.label}</span>` : `<span class="btn btn--sq">${K.ICONS[c.icon]}</span>`).join("");
-}
 function copy(d) {
-  const meta = d.meta.filter((m) => !(d.type === "live" && m === "Live"));
-  const b = badge(d);
-  return `<div class="copy stagger">
-    ${b ? `<div class="status-row" style="--i:0">${b}</div>` : ""}
-    <div class="logo" style="--i:1"><img src="${d.logo}" alt="${d.logoAlt || ""}" draggable="false"></div>
-    <div class="meta" style="--i:2">${meta.map((m, k) => k === 0 ? `<span class="net">${m}</span>` : `<span>${m}</span>`).join("")}</div>
-    <div class="ctas" style="--i:3">${ctaHtml(d)}</div>
-  </div>`;
+  // Shared FOX One lockup: title art · meta row (Live / New Episode badge inline) · one short line · CTAs
+  const st = (h, i) => h.replace(/^<(\w+) class="/, `<$1 style="--i:${i}" class="`);
+  return `<div class="copy stagger">${st(K.ui.title(d), 0)}${st(K.ui.metaRow(d), 1)}<div class="tagline" style="--i:2">${d.tagline}</div>${st(K.ui.ctas(d), 3)}</div>`;
 }
 
 /* One element per title; each gets a slot from its distance to the current index */

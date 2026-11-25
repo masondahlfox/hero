@@ -199,11 +199,12 @@
   function Focus(kit, opts) {
     const stage = kit.stage, mode = opts.heroMode || "ctas", HOLD = 8000;
     const st = { zone: "hero", cta: 0, nav: 1, tile: 0, userPaused: false, holdUntil: 0, want: null };
+    let heroItems = opts.heroItems;
     const navEls = () => [...stage.querySelectorAll(".fo-nav__item, .fo-nav__profile")];
     const tiles = () => [...stage.querySelectorAll(".rail-tiles .tile-p")];
     const visible = (el) => el.checkVisibility ? el.checkVisibility({ opacityProperty: true, visibilityProperty: true }) : !!el.offsetParent;
     function heroBtns() {
-      if (opts.heroItems) return opts.heroItems();   // concept-supplied focus row (e.g. CTAs + an inline trailer)
+      if (heroItems) return heroItems() || [];   // concept-supplied focus row (e.g. CTAs + an inline trailer)
       const groups = [...stage.querySelectorAll(".ctas")].filter((g) => !g.closest(".page-rail") && visible(g) && !g.closest(".out, .is-prev, .is-out"));
       const g = groups[groups.length - 1];
       return g ? [...g.querySelectorAll(".btn")] : [];
@@ -217,7 +218,7 @@
       stage.classList.toggle("hero-focus", st.zone === "hero");
       if (st.zone === "hero" && mode === "ctas") {
         // Every rendered CTA row mirrors the focused index, so crossfading slides never flash the wrong state
-        if (opts.heroItems) { const b = opts.heroItems(); const n = Math.min(st.cta, b.length - 1); if (b[n]) b[n].classList.add("is-focused"); }
+        if (heroItems) { const b = heroItems() || []; const n = Math.min(st.cta, b.length - 1); if (b[n]) b[n].classList.add("is-focused"); }
         else stage.querySelectorAll(".ctas").forEach((g) => { const b = g.querySelectorAll(".btn"); const n = Math.min(st.cta, b.length - 1); if (b[n]) b[n].classList.add("is-focused"); });
       } else if (st.zone === "nav") { const n = navEls(); n[st.nav] && n[st.nav].classList.add("is-focused"); }
       else if (st.zone === "rail") {
@@ -244,6 +245,8 @@
       get cta() { return st.cta; },
       togglePause() { st.userPaused = !st.userPaused; st.want = null; pause(); kit.refreshHud(); },
       refresh: schedule,
+      setHeroItems(fn) { heroItems = fn; schedule(); },
+      resetCta() { st.cta = 0; schedule(); },
       key(e) {
         const k = e.key, z = st.zone;
         if (!/^(Arrow(Up|Down|Left|Right)|Enter)$/.test(k)) return false;
