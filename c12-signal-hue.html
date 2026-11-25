@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <title>C12 · Signal Hue — Fox One Multi-Hero</title>
 <link rel="stylesheet" href="shared/base.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
 <style>
   /* One vivid hue per title, taken from the FOX One Nebula palette. The footage is pulled toward grey so the hue
      owns the frame ("grey builds the interface, colour carries meaning"). Every element on top of the picture —
@@ -37,10 +36,10 @@
   .copy .stagger { display: flex; flex-direction: column; align-items: flex-start; }
   .copy .stagger > * + * { margin-top: 22px; }
 
-  .vt { font: 400 196px/.9 "Instrument Serif", "Times New Roman", serif; letter-spacing: -.02em; color: var(--h);
+  .vt { font: 800 150px/.9 var(--f-ui); letter-spacing: -.045em; color: var(--h);
         perspective: 1400px; max-width: 1100px; text-shadow: 0 8px 40px rgba(0,0,0,.35); margin-bottom: 6px; }
   .vt .ln { display: block; white-space: nowrap; }
-  .vt .vs { font-style: italic; font-size: .5em; letter-spacing: 0; margin: 0 .12em 0 .04em; }
+  .vt .vs { font-style: normal; font-weight: 600; font-size: .4em; letter-spacing: -.01em; margin: 0 .12em 0 .04em; }
   .vt .ch { display: inline-block; transform-origin: 50% 60%; backface-visibility: visible; opacity: 0; }
   .vt .sp { display: inline-block; width: .22em; }
   .is-in .vt .ch { animation: flipIn .9s var(--ease-out) both; animation-delay: calc(380ms + var(--j) * 46ms); }
@@ -85,8 +84,8 @@
   .np__bar { position: absolute; z-index: 2; left: 18px; right: 18px; top: 16px; height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--h) 28%, transparent); overflow: hidden; }
   .np__bar i { display: block; height: 100%; width: 0; background: var(--h); }
   .np__label { position: absolute; z-index: 2; left: 20px; top: 36px; font: 600 17px/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--h); opacity: .9; }
-  .np__t { position: absolute; z-index: 2; left: 20px; right: 16px; bottom: 22px; font: 400 64px/.86 "Instrument Serif", serif; letter-spacing: -.015em; color: var(--h); }
-  .np__t .vs { font-style: italic; font-size: .5em; }
+  .np__t { position: absolute; z-index: 2; left: 20px; right: 16px; bottom: 22px; font: 800 50px/.9 var(--f-ui); letter-spacing: -.04em; color: var(--h); }
+  .np__t .vs { font-style: normal; font-weight: 600; font-size: .4em; }
   .np__t .ln { display: block; }
   .np__card.pre { transform: translateX(440px); opacity: 0; }
   .np__card.gone { opacity: 0; transition: opacity .15s; }

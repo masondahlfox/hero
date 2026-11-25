@@ -5,12 +5,10 @@
 <title>C8 · Editorial Split — Fox One Multi-Hero</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/base.css">
 <style>
   /* Editorial split: full-bleed cinematic art opens from the center, the lockup holds a strong left column,
      a huge condensed headline sits top-right with an inline trailer, and the next title peeks in from the right edge. */
-  :root { --cond: "Oswald", "Bebas Neue", "Arial Narrow", Impact, sans-serif; }
   .stage { background: #000; }
 
   .slides { position: absolute; inset: 0; z-index: 2; transition: opacity .35s var(--ease-std); }
@@ -46,7 +44,7 @@
 
   /* Right column: condensed headline + inline trailer */
   .edit { position: absolute; z-index: 5; left: 1160px; top: 190px; width: 520px; }
-  .head { font: 400 124px/.9 var(--f-display); text-transform: uppercase; letter-spacing: -.005em; }
+  .head { font: 800 104px/.92 var(--f-display); text-transform: uppercase; letter-spacing: -.04em; }
   .head .ln { display: block; overflow: hidden; padding: 4px 0; margin: -4px 0; }
   .head .ln > span { display: inline-block; white-space: nowrap; transform: translateY(110%);
     transition: transform 1s var(--ease-out); transition-delay: calc(.4s + var(--k) * 90ms); }
@@ -62,7 +60,7 @@
   .ring { width: 76px; height: 76px; border-radius: 50%; border: 3px solid rgba(255,255,255,.9); display: grid; place-items: center;
     transition: background .2s, transform .25s var(--ease-std); }
   .ring svg { width: 26px; height: 26px; fill: #fff; margin-left: 5px; transition: fill .2s; }
-  .tlabel { font: 400 30px/1.05 var(--f-display); text-transform: uppercase; letter-spacing: .05em; }
+  .tlabel { font: 700 22px/1.15 var(--f-display); text-transform: uppercase; letter-spacing: .02em; }
   .trail.is-focused .ring { background: #fff; transform: scale(1.1); }
   .trail.is-focused .ring svg { fill: #000; }
   .trail.is-focused .tthumb { outline-color: #fff; transform: scale(1.04); }

@@ -8,7 +8,7 @@
      tiles     252×378 r12, 32 gap · tile badge 30h r6 · progress 5h red
      hero card x120 y130 1680×800 r24 inner pad 64 (card concepts)
    ============================================================ */
-@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
 
 :root {
   /* color */
@@ -27,8 +27,8 @@
 
   /* type */
   --f-ui: Inter, -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
-  --f-display: "Bebas Neue", "Druk Condensed", "Oswald", Impact, "Arial Narrow", sans-serif;
-  --t-title: 124px;            /* hero title (DODGERS vs BREWERS) */
+  --f-display: var(--f-ui);    /* all typography is Inter; display = Inter 800, tight */
+  --t-title: 104px;            /* hero title (DODGERS vs BREWERS) */
   --t-row: 28px;               /* row heading (Live Lineup) */
   --t-nav: 24px;
   --t-btn: 23px;
@@ -209,7 +209,7 @@ body.native .stage { transform: translate(-50%, -50%) scale(1); }
 .logo { display: block; transform-origin: left bottom; }
 .logo img { width: auto; height: auto; max-width: 600px; max-height: 190px; filter: drop-shadow(0 6px 30px rgba(0,0,0,.35)); }
 .logo--type, .title-display {
-  font-family: var(--f-display); font-size: var(--t-title); line-height: .86; font-weight: 400; letter-spacing: .005em;
+  font-family: var(--f-display); font-size: var(--t-title); line-height: .9; font-weight: 800; letter-spacing: -.035em;
   text-transform: uppercase; max-width: 900px; text-shadow: 0 6px 30px rgba(0,0,0,.35);
 }
 .title-display .vs, .logo--type .vs { font-size: .42em; font-style: italic; margin: 0 .12em; vertical-align: .55em; }
@@ -289,7 +289,7 @@ body.native .stage { transform: translate(-50%, -50%) scale(1); }
 /* ---------- HUD (outside the design; hidden in gallery thumbnails) ---------- */
 .hud {
   position: fixed; right: 16px; bottom: 16px; z-index: 1000; width: 340px; padding: 14px 16px 12px;
-  font: 500 12.5px/1.45 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #e9e9ee;
+  font: 500 12.5px/1.45 Inter, -apple-system, "Helvetica Neue", Arial, sans-serif; color: #e9e9ee;
   background: rgba(18,18,22,.9); border: 1px solid rgba(255,255,255,.1); border-radius: 12px;
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 10px 40px rgba(0,0,0,.5);
   transition: opacity .2s, transform .2s;
