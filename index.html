@@ -92,24 +92,25 @@
       <ul>
         <li><b>C1 is the direct read of your reference</b>: continuous motion, size as a function of position, one baseline, editorial negative space. It uses the vertical (2:3-ish) asset; the others use the horizontal one.</li>
         <li><b>C2 and C3 make the content itself the navigation.</b> C2 uses the title art as the window; C3 uses time as the axis. Both shift the work from layout to motion.</li>
-        <li><b>C4 lets each content type look different</b>: live gets a scoreboard, a premiere gets a countdown. That's the strongest answer to "live vs show vs special".</li>
+        <li><b>C4 lets each content type look different</b>: the board re-flows per title, with the one short line set big in its own tile.</li>
         <li><b>02 is the least-change option.</b> It uses the template's existing peek geometry, so it's the baseline to compare everything else against.</li>
         <li><b>06 is a behavior, not just a transition.</b> The live takeover can sit on top of 01, 02 or 03, which makes it worth testing as a separate variable (e.g. takeover on vs off).</li>
         <li><b>C1 / C5 performance:</b> both are transform-only per frame. C2 animates mask geometry (expensive on low-end TV GPUs), so it's a good candidate for a pre-rendered video transition in production.</li>
         <li><b>05 needs layered art</b> (bg / mid / fg cut-outs). That's beyond one horizontal asset per title, so with flat key art or video it reduces to a bg + text push.</li>
         <li><b>Live dwell is longer</b> where it matters: 12s in 01, 18s in 06. Other slides dwell 8s.</li>
         <li><b>Performance:</b> everything animates opacity, transform or clip-path, except 06, which animates box geometry for prototyping speed. Production should scale a video surface with transforms. Backdrop blur (07, score bug) may need a solid fallback on low-end Tizen / webOS.</li>
-        <li>Metadata, scores, ratings and air times are mock values. The Accused key art and the nav / rail strips are cropped from the home template you shared.</li>
+        <li><b>One design system:</b> nav, badges, meta row, buttons, tiles and radii all come from shared/base.css, measured from the FOX One home template. Metadata is kept minimal: title art, one meta row with Live or New Episode badges, one short line and the CTAs.</li>
+        <li><b>D-pad model (every concept):</b> focus starts on Watch. ← → move across Watch, + and bell; → past the last button pages to the next title (← past the first pages back). ↑ always goes to the nav, ↓ always goes to the Live Lineup row below the hero. Auto-advance holds for 8s after any press. C7's hero is a tile row, so ← → move along it and OK plays.</li>
+        <li><b>Up next:</b> every concept shows a peek of the next title (neighbouring posters or cards, or an Up-next tile whose bar fills with the dwell). No dots or page numbers.</li>
       </ul>
     </div>
     <div class="card">
       <h3>Controls (in every option)</h3>
       <div class="keys">
-        <kbd>← →</kbd><span>Previous / next slide (D-pad)</span>
+        <kbd>← →</kbd><span>Move across the hero buttons; past the end pages the hero</span>
+        <kbd>↑ ↓</kbd><span>Up to the nav · down to the Live Lineup row</span>
+        <kbd>OK</kbd><span>Select (Enter). C2: Watch dives through the title · 06: Watch on live enters takeover · C7: plays the focused tile</span>
         <kbd>Space</kbd><span>Pause / resume auto-rotate</span>
-        <kbd>Enter</kbd><span>06: enter / exit live takeover</span>
-        <kbd>↑ ↓</kbd><span>07: step through the index</span>
-        <kbd>Enter</kbd><span>C2: dive through the title now</span>
         <kbd>M · T</kbd><span>C1: marquee mode · light editorial theme</span>
         <kbd>B</kbd><span>C6: open / close the window (full-bleed)</span>
         <kbd>N · R</kbd><span>Toggle page nav · next-rail context</span>
@@ -126,36 +127,36 @@
 
 <script>
 const OPTS = [
-  { f: "01-cinematic-crossfade.html", t: "Cinematic Crossfade", tag: "Safe", d: "Key art dissolves under a slow Ken Burns push. Metadata exits fast and staggers back in, and segmented pips show the queue length.",
+  { f: "01-cinematic-crossfade.html", t: "Cinematic Crossfade", tag: "Safe", d: "Key art dissolves under a slow Ken Burns push. Metadata exits fast and staggers back in, and an Up-next tile shows what rotates in.",
     tr: "1.1s crossfade · 12s push", tx: "70ms stagger, rise 26px", best: "Show-led rotations; lowest risk", cost: 1 },
-  { f: "02-peek-carousel.html", t: "Peek Carousel", tag: "Template-native", d: "Matches the current template: neighbouring cards peek 87px at each edge. Cards travel with window-parallax on the art, and pagination sits in the gutter above the rail.",
+  { f: "02-peek-carousel.html", t: "Peek Carousel", tag: "Template-native", d: "Matches the current template: neighbouring cards peek 87px at each edge. Cards travel with window-parallax on the art, and the next and previous cards peek at the edges.",
     tr: "950ms slide · ease-in-out", tx: "Lands after card settles", best: "Signals 'more here' without extra UI", cost: 1 },
-  { f: "03-thumbnail-selector.html", t: "Thumbnail Selector", tag: "Discovery", d: "A visible queue inside the card. Users see what's next and its content type before it rotates in, and the D-pad moves focus along the thumbs.",
+  { f: "03-thumbnail-selector.html", t: "Thumbnail Selector", tag: "Discovery", d: "A visible queue inside the card. Users see what's next and its content type before it rotates in, and the active thumb carries the dwell timer.",
     tr: "600ms crossfade · 1.6s settle", tx: "Slide-in from left", best: "Discoverability across content types", cost: 2 },
   { f: "04-diagonal-wipe.html", t: "Diagonal Wipe", tag: "Broadcast", d: "The next title wipes in on a 22.8° edge led by its accent color, like a sports graphics package. The title art then mask-reveals on the same axis.",
     tr: "1.0s clip-path wipe", tx: "Logo mask reveal +620ms", best: "Sports / live-heavy rotations", cost: 2 },
   { f: "05-parallax-depth.html", t: "Parallax Depth", tag: "Premium", d: "A push transition where background, midground, foreground and text travel at different rates, with idle drift between transitions.",
     tr: "1.3s layered push", tx: "Text at 40% rate", best: "Premieres / specials with layered art", cost: 2 },
-  { f: "06-live-takeover.html", t: "Live Takeover", tag: "Live priority", d: "After 3.5s on a live slide, the card expands full-bleed. Nav and rail clear, metadata collapses to badge, score and CTA, and score events toast in.",
+  { f: "06-live-takeover.html", t: "Live Takeover", tag: "Live priority", d: "After 3.5s on a live slide, the card expands full-bleed. The rail clears under the nav and metadata collapses to badge and CTAs.",
     tr: "900ms expand · 3.5s arm", tx: "Collapses to essentials", best: "Live events; the 'it's on now' moment", cost: 3 },
-  { f: "07-content-tabs.html", t: "Content-Type Tabs", tag: "Wayfinding", d: "A glass index labels each item by type (Live Sports / Comedy Series / Movie Premiere). A spring indicator tracks the active row, and transitions run vertically.",
+  { f: "07-content-tabs.html", t: "Content-Type Tabs", tag: "Wayfinding", d: "A glass index labels each item by type (Live Sports / Comedy Series / Movie Premiere). A spring indicator tracks the active row, and transitions run vertically. The index is read-only; ↑ ↓ stay with nav and the row below.",
     tr: "800ms vertical crossfade", tx: "Rises from direction of travel", best: "Mixed rotations where type matters", cost: 1 },
 ];
 const CONCEPTS = [
-  { f: "c1-magnify-conveyor.html", th: "c1", t: "Magnify Conveyor", tag: "From your reference", ref: true, d: "Portrait posters ride one baseline. Size follows a bell curve around center, so the rotation is a continuous glide instead of slide changes. The centered title takes over the open editorial field.",
+  { f: "c1-magnify-conveyor.html", th: "c1", t: "Magnify Conveyor", tag: "From your reference", ref: true, d: "Portrait posters ride one baseline. Size follows a bell curve around center, so the rotation is a continuous glide instead of slide changes. The peak sits right of center so the top-left stays a clean lockup for the title at the peak.",
     tr: "Critically-damped glide · or constant marquee (M)", tx: "Field crossfade at center-crossing", best: "Browsing feel; showing breadth", cost: 1 },
   { f: "c2-title-portal.html", th: "c2", t: "Title Portal", tag: "Signature", d: "The title art becomes a window onto the live feed or key art. After a beat, the camera dives through the thickest stroke of the lettering into full-bleed, and the lockup lands.",
     tr: "1.1s window open · 1.7s dive", tx: "Centered under title → lockup after dive", best: "Tentpoles, premieres, big live events", cost: 3 },
   { f: "c3-now-line.html", th: "c3", t: "Now Line", tag: "Live-first", d: "A log-scaled timeline anchored to NOW. On-demand titles sit in the past, the live game straddles the line, and the premiere waits in the future. New art scrubs open from the item's moment in time.",
     tr: "1.15s scrub reveal from timeline x", tx: "Top-left, stagger", best: "Mixed live + VOD + upcoming", cost: 1 },
-  { f: "c4-bento-morph.html", th: "c4", t: "Bento Morph", tag: "Per-type layouts", d: "Each content type gets its own composition: live = feed + scoreboard, series = art + episode or social proof, premiere = cinemascope + countdown. The board re-flows between them.",
+  { f: "c4-bento-morph.html", th: "c4", t: "Bento Morph", tag: "Per-type layouts", d: "Each content type gets its own composition: each title gets its own composition and the board re-flows between them, with the one short line set big in its own tile.",
     tr: "0.95s layout morph, staggered", tx: "Facet tiles swap mid-morph", best: "Making live / show / special feel different", cost: 2 },
   { f: "c5-depth-queue.html", th: "c5", t: "Depth Queue", tag: "Spatial", d: "The rotation is a physical queue receding into depth. Advancing flies the camera forward: the current title rushes past the lens and the next settles into focus.",
     tr: "1.35s z-axis fly-through", tx: "Slides in from left", best: "Making 'what's next' visible", cost: 2 },
-  { f: "c6-fox-o-window.html", th: "c6", t: "FOX-O Window", tag: "Editorial poster", d: "Each title gets a solid color field picked from its art, and the photo shows through the FOX-O silhouette. The O's counter is the color field and fills as the dwell timer. Live opens the window full-bleed after 4s.",
+  { f: "c6-fox-o-window.html", th: "c6", t: "FOX-O Window", tag: "Editorial poster", d: "Each title gets a solid color field picked from its art, and the photo shows through the FOX-O silhouette. The O's counter is the color field and fills as the dwell timer, and an Up-next tile shows the next title. Live opens the window full-bleed after 4s.",
     tr: "1.25s window travel + field color morph", tx: "Title art hangs over the window edge", best: "Brand-forward rotation; editorial feel", cost: 2 },
-  { f: "c7-game-dash.html", th: "c7", t: "Game Dash", tag: "Game console", d: "A game-console dashboard. The focused title fills the screen, focus snaps along a tile row with a glowing ring and shine, and stat-style metadata (live score, season progress, achievements) counts up. Toasts slide in for live moments and unlocks.",
-    tr: "340ms snap focus · overshoot + shine", tx: "Big title + stat row, counts up", best: "Making the home feel playful and alive", cost: 2 },
+  { f: "c7-game-dash.html", th: "c7", t: "Game Dash", tag: "Game console", d: "A game-console dashboard. The focused title fills the screen, and the hero is a tile row: ← → snap focus along it with a glowing ring and shine, OK plays. Under it, just the title, one meta row and one line.",
+    tr: "340ms snap focus · overshoot + shine", tx: "Big title + meta row + one line", best: "Making the home feel playful and alive", cost: 2 },
   { f: "c8-editorial-split.html", th: "c8", t: "Editorial Split", tag: "Editorial", d: "Cinematic art opens from the center line like a curtain. The lockup holds a strong left column, a huge condensed headline sits top-right with an inline trailer, and the next title peeks in from the right edge with the dwell timer beside it.",
     tr: "1.25s center curtain · headline line reveal", tx: "Lockup left, headline + trailer right", best: "Tentpoles with a strong trailer or key line", cost: 1 },
   { f: "c9-spine-shelf.html", th: "c9", t: "Spine Shelf", tag: "Shelf", d: "The rotation is a shelf. The current title is open as a wide panel and the rest stand beside it as angled spines with their title art turned on its side. The next spine is wider and its edge fills as the timer; on advance the panel folds shut and the next spine swings open.",

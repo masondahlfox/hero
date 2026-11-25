@@ -7,22 +7,17 @@
 <style>
   .stage { --bgc: #070708; --fg: #fff; --fg2: rgba(255,255,255,.62); background: var(--bgc); transition: background .6s; }
   .stage.light { --bgc: #eeebe8; --fg: #121212; --fg2: rgba(0,0,0,.55); }
-  .stage.light .page-nav { filter: invert(1) hue-rotate(180deg); mix-blend-mode: multiply; }
+  .stage.light .page-nav { filter: invert(1) hue-rotate(180deg); }
 
   /* Poster: authored at max size (420×560) and scaled from its bottom-left corner — transform only, no layout per frame */
-  .pc { position: absolute; left: 0; top: 0; width: 420px; height: 560px; transform-origin: 0 0; border-radius: 8px; overflow: hidden; background: #111; }
+  .pc { position: absolute; left: 0; top: 0; width: 420px; height: 560px; transform-origin: 0 0; border-radius: var(--r-tile); overflow: hidden; background: #111; }
   .pc .art { inset: 0; }
   .pc .veil { position: absolute; inset: 0; background: var(--bgc); pointer-events: none; }
-  .pc .chip { position: absolute; right: 0; top: 0; width: 64px; height: 64px; background: var(--bgc); display: grid; place-items: center; border-bottom-left-radius: 8px; }
-  .pc .chip b { font: italic 900 20px/1 var(--f-ui); color: var(--fg); letter-spacing: -.03em; }
-  .pc .chip .ld { width: 14px; height: 14px; border-radius: 50%; background: var(--live-hot); animation: pulse 1.6s infinite; }
-  .lbl { position: absolute; left: 0; top: 0; overflow: hidden; display: flex; align-items: center; gap: 9px; white-space: nowrap; font: 600 18px/1 var(--f-ui); color: var(--fg2); transform-origin: 0 100%; }
-  .lbl i { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--fg2); }
-  .lbl.live i { box-shadow: none; background: var(--live-hot); }
-  .lbl.is-feat { color: var(--fg); }
+  .pc .badge { position: absolute; z-index: 2; left: 20px; top: 20px; transform-origin: 0 0; }
 
   /* Editorial field — the featured item's metadata lives in the open space */
-  .field { position: absolute; left: 120px; top: 160px; width: 1100px; z-index: 5; }
+  /* Lockup owns the top-left; the bell-curve peak sits right of center so the art never crowds it */
+  .field { position: absolute; left: 120px; top: 170px; width: 760px; z-index: 5; }
   .field .meta-block { position: static; width: auto; }
   .field .logo img { max-height: 136px; max-width: 520px; }
   .field .logo--type { font-size: 92px; color: var(--fg); }
@@ -30,18 +25,13 @@
   .field .sponsor, .field .social { color: var(--fg2); }
   .field .livebar { color: var(--fg2); }
   .stage.light .field .logo img { filter: brightness(0); }
-  .stage.light .field .tagline { color: #0a8a1a; }
-  .stage.light .field .btn--sq { background: rgba(0,0,0,.1); color: #111; }
+  .stage.light .field .tagline { color: var(--fg2); }
+  .stage.light .field .btn--round { background: rgba(0,0,0,.06); color: #111; box-shadow: inset 0 0 0 2px rgba(0,0,0,.25); }
   .stage.light .field .btn.is-focused { background: #111; color: #fff; }
-  .stage.light .field .score { background: rgba(0,0,0,.75); }
   .field .ctas { margin-top: 22px !important; }
   .fwrap.out { position: absolute; left: 0; top: 0; opacity: 0; transform: translateY(-12px); transition: opacity .35s, transform .35s; }
   .is-active .stagger > * { --delay: 120ms; animation-duration: .6s; }
 
-  .studio { position: absolute; right: 120px; top: 176px; width: 420px; z-index: 5; font: 500 18px/1.45 var(--f-ui); color: var(--fg2); text-align: left; }
-  .studio b { display: block; color: var(--fg); font-weight: 700; margin-bottom: 6px; }
-  .count { position: absolute; right: 120px; top: 360px; font: 800 120px/1 var(--f-ui); letter-spacing: -.04em; color: var(--fg); font-variant-numeric: tabular-nums; opacity: .9; }
-  .count small { font-size: 36px; color: var(--fg2); letter-spacing: 0; }
 
   .prog { position: absolute; z-index: 6; top: 1030px; height: 3px; left: 0; border-radius: 2px; background: rgba(127,127,127,.3); overflow: hidden; }
   .prog i { display: block; height: 100%; width: 0; background: var(--fg); }
@@ -50,8 +40,6 @@
 <body>
 <div class="viewport"><div class="stage" id="stage">
   <div class="field" id="field"></div>
-  <div class="studio"><b>Tonight on FOX One</b>Live football, two series, Liga MX and FOX Soul. Use ◀ ▶ to steer the conveyor, or let it drift.</div>
-  <div class="count" id="count"></div>
   <div id="belt"></div>
   <div class="prog" id="prog"><i></i></div>
 </div></div>
@@ -62,14 +50,15 @@
 <script>
 const K = HeroKit.init({
   title: "C1 · Magnify Conveyor",
-  notes: "From your reference: portrait posters ride one baseline; size follows a bell curve around center (dock magnification), so motion is continuous rather than slide-to-slide. The centered title takes over the editorial field. Uses the vertical asset.",
+  notes: "From your reference: portrait posters ride one baseline; size follows a bell curve around center (dock magnification), so motion is continuous rather than slide-to-slide. The peak sits right of center so the top-left stays a clean lockup for whichever title is at the peak. Uses the vertical asset.",
   extraKeys: [["M", "Mode: step-and-glide ↔ constant marquee"], ["T", "Theme: dark ↔ light editorial"]],
   rail: false,
 });
 const stage = K.stage, belt = document.getElementById("belt"), field = document.getElementById("field");
-const N = K.data.length, SLOTS = 12, HALF = SLOTS / 2;
+// SLOTS must be a multiple of N so the poster at the peak is always the title shown in the lockup
+const N = K.data.length, SLOTS = N * 2, HALF = SLOTS / 2;
 // Bell-curve sizing (px). Center-to-center spacing is the integral of width, so neighbours never overlap.
-const W_MAX = 420, W_MIN = 130, GAP = 18, A = 1.45, BASE = 1016, CX = 960;
+const W_MAX = 420, W_MIN = 130, GAP = 18, A = 1.45, BASE = 1016, CX = 1280;
 const erf = (x) => { const t = 1 / (1 + .3275911 * Math.abs(x)); const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; };
 const width = (u) => W_MIN + (W_MAX - W_MIN) * Math.exp(-((u / A) ** 2));
 const center = (u) => CX + (W_MIN + GAP) * u + (W_MAX - W_MIN) * A * Math.sqrt(Math.PI) / 2 * erf(u / A);
@@ -79,11 +68,9 @@ for (let j = 0; j < SLOTS; j++) {
   const item = K.data[j % N];
   const el = document.createElement("div"); el.className = "pc";
   el.innerHTML = `<div class="art">${K.art(item, "all", { noAutoplay: true })}</div>
-    <div class="chip">${item.type === "live" ? '<span class="ld"></span>' : "<b>FOX</b>"}</div><div class="veil"></div>`;
-  const lbl = document.createElement("div"); lbl.className = "lbl" + (item.type === "live" ? " live" : "");
-  lbl.innerHTML = `<i></i>${item.type === "live" ? "Live · NFL" : item.typeLabel}`;
-  belt.append(el, lbl);
-  cards.push({ el, lbl, veil: el.querySelector(".veil"), video: el.querySelector("video"), item });
+    ${item.type === "live" ? K.ui.badge(item, { tile: true }) : ""}<div class="veil"></div>`;
+  belt.append(el);
+  cards.push({ el, veil: el.querySelector(".veil"), video: el.querySelector("video"), item });
 }
 
 let s = 0, T = 0, mode = "step", feat = -1, last = performance.now();
@@ -95,7 +82,6 @@ function setFeatured(i) {
   if (old) { old.classList.add("out"); setTimeout(() => old.remove(), 400); }
   field.insertAdjacentHTML("beforeend", `<div class="fwrap">${K.metaBlock(K.data[i], { noSocial: true })}</div>`);
   const nb = field.lastElementChild; void nb.offsetWidth; nb.classList.add("is-active");
-  document.getElementById("count").innerHTML = `${String(i + 1).padStart(2, "0")}<small> / ${String(N).padStart(2, "0")}</small>`;
 }
 
 function frame(now) {
@@ -109,10 +95,6 @@ function frame(now) {
     const w = width(u), h = w * 4 / 3, x = center(u) - w / 2, k = w / W_MAX;
     c.el.style.transform = `translate(${x.toFixed(1)}px, ${(BASE - h).toFixed(1)}px) scale(${k.toFixed(4)})`;
     c.el.style.zIndex = 100 - Math.round(Math.abs(u) * 10);
-    c.lbl.style.transform = `translate(${x.toFixed(1)}px, ${(BASE - h - 34).toFixed(1)}px)`;
-    c.lbl.style.maxWidth = w.toFixed(0) + "px";
-    c.lbl.style.opacity = Math.max(0, 1 - Math.abs(u) / 4.2).toFixed(3);
-    c.lbl.classList.toggle("is-feat", Math.abs(u) < .5);
     c.veil.style.opacity = Math.min(.82, Math.max(0, (Math.abs(u) - .6) * .26)).toFixed(3);
     if (Math.abs(u) < .5) { featW = w; prog.style.transform = `translateX(${x.toFixed(1)}px)`; }
     if (c.video) { const near = Math.abs(u) < 1.6; if (near && c.video.paused) c.video.play().catch(() => {}); else if (!near && !c.video.paused) c.video.pause(); }
@@ -131,7 +113,7 @@ K.rot = K.Rotator({
 K.onKey((e) => {
   if (e.key === "m" || e.key === "M") { mode = mode === "step" ? "drift" : "step"; T = Math.round(s); return true; }
   if (e.key === "t" || e.key === "T") { stage.classList.toggle("light"); return true; }
-  if (mode === "drift" && (e.key === "ArrowRight" || e.key === "ArrowLeft")) { mode = "step"; T = Math.round(s); }
+  if (mode === "drift" && K.zone === "hero" && (e.key === "ArrowRight" || e.key === "ArrowLeft")) { mode = "step"; T = Math.round(s); }
 });
 requestAnimationFrame(frame);
 K.refreshHud();

@@ -8,7 +8,7 @@
   .stage { background: #030304; }
   .glow { position: absolute; inset: 0; transition: background 1.4s; background: radial-gradient(60% 70% at 66% 48%, color-mix(in srgb, var(--acc, #335) 30%, transparent), transparent 70%); }
   .space { position: absolute; inset: 0; perspective: 1500px; perspective-origin: 66% 44%; }
-  .plane { position: absolute; left: 1210px; top: 540px; width: 1080px; height: 608px; border-radius: 18px; overflow: hidden; background: #111;
+  .plane { position: absolute; left: 1210px; top: 540px; width: 1080px; height: 608px; border-radius: var(--r-tile); overflow: hidden; background: #111;
     box-shadow: 0 40px 120px rgba(0,0,0,.6); transform-origin: 50% 50%; will-change: transform, opacity;
     transition: transform 1.35s cubic-bezier(.6, 0, .2, 1), opacity 1.35s cubic-bezier(.6, 0, .2, 1); }
   .plane.snap { transition: none !important; }
@@ -28,7 +28,7 @@
   .host .logo--type { font-size: 96px; }
   .mw.out { opacity: 0; transform: translateX(-24px); transition: opacity .35s, transform .35s; }
   .is-active .stagger > * { --delay: 520ms; }
-  .depth { position: absolute; left: 120px; bottom: 80px; display: flex; gap: 14px; align-items: center; font: 700 16px/1 var(--f-ui); letter-spacing: .12em; color: var(--ink-3); text-transform: uppercase; }
+  .depth { display: none !important; position: absolute; left: 120px; bottom: 80px; display: flex; gap: 14px; align-items: center; font: 700 16px/1 var(--f-ui); letter-spacing: .12em; color: var(--ink-3); text-transform: uppercase; }
   .depth span { width: 34px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.2); transition: background .4s, width .4s; }
   .depth span.on { background: #fff; width: 64px; }
 </style>
@@ -57,7 +57,7 @@ const FOG = (k) => (k <= 0 ? 0 : Math.min(.8, .38 + (k - 1) * .18));
 
 const planes = K.data.map((d) => {
   const p = document.createElement("div"); p.className = "plane";
-  p.innerHTML = `<div class="art">${K.art(d)}</div><div class="tag">${d.type === "live" ? "<i></i>" : ""}${d.typeLabel}</div><div class="fog"></div><div class="pr"><i></i></div>`;
+  p.innerHTML = `<div class="art">${K.art(d)}</div>${d.type === "live" ? `<div class="tag">${K.ui.badge(d, { tile: true })}</div>` : ""}<div class="fog"></div><div class="pr"><i></i></div>`;
   space.append(p); return p;
 });
 document.getElementById("depth").innerHTML = K.data.map(() => "<span></span>").join("") ;

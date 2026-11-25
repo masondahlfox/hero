@@ -25,7 +25,7 @@
   @keyframes logoWipe { from { opacity: 1; clip-path: inset(-10% 100% -10% 0); transform: translateX(-12px); } to { opacity: 1; clip-path: inset(-10% -5% -10% 0); transform: none; } }
   .is-active .stagger > * { --delay: 560ms; }
 
-  .ticks { position: absolute; z-index: 30; right: var(--pad); bottom: calc(var(--pad) + 20px); display: flex; gap: 14px; align-items: flex-end; }
+  .ticks { display: none !important; position: absolute; z-index: 30; right: var(--pad); bottom: calc(var(--pad) + 20px); display: flex; gap: 14px; align-items: flex-end; }
   .tick { width: 4px; height: 22px; border-radius: 2px; background: rgba(255,255,255,.3); transform: skewX(-22.8deg); overflow: hidden; position: relative; transition: height .4s var(--ease-out); }
   .tick i { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: #fff; }
   .tick.is-active { height: 44px; }
@@ -84,6 +84,7 @@ K.rot = K.Rotator({
   onTick: (p, i) => { ticks[i].querySelector("i").style.height = (p * 100).toFixed(1) + "%"; },
 });
 show(0);
+K.mountPeek(card);
 K.refreshHud();
 </script>
 </body>

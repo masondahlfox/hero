@@ -18,7 +18,7 @@
   .is-active .stagger > * { --delay: 450ms; }
 
   /* Progress pips — bottom-right of card */
-  .pips { position: absolute; z-index: 30; right: var(--pad); bottom: calc(var(--pad) + 26px); display: flex; gap: 10px; }
+  .pips { display: none !important; position: absolute; z-index: 30; right: var(--pad); bottom: calc(var(--pad) + 26px); display: flex; gap: 10px; }
   .pip { width: 56px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.28); overflow: hidden; }
   .pip i { display: block; height: 100%; width: 0; background: #fff; }
   .pip.is-done i { width: 100%; }
@@ -51,7 +51,7 @@ K.data.forEach((item, i) => {
       ${K.metaBlock(item)}
     </div>`);
 });
-card.insertAdjacentHTML("beforeend", `<div class="counter" id="counter"></div><div class="pips" id="pips">${K.data.map(() => '<div class="pip"><i></i></div>').join("")}</div>`);
+card.insertAdjacentHTML("beforeend", `<div class="pips" id="pips">${K.data.map(() => '<div class="pip"><i></i></div>').join("")}</div>`);
 
 const slides = [...card.querySelectorAll(".slide")], pips = [...card.querySelectorAll(".pip")];
 let prevTimer;
@@ -64,7 +64,6 @@ function show(i, prev) {
   K.replay(slides[i]);
   clearTimeout(prevTimer); prevTimer = setTimeout(() => slides.forEach((s) => s.classList.remove("is-prev")), 1200);
   pips.forEach((p, n) => { p.classList.toggle("is-done", n < i); p.querySelector("i").style.width = n < i ? "100%" : "0"; });
-  document.getElementById("counter").innerHTML = `<b>${String(i + 1).padStart(2, "0")}</b> / ${String(K.data.length).padStart(2, "0")}`;
 }
 
 K.rot = K.Rotator({
@@ -74,6 +73,7 @@ K.rot = K.Rotator({
   onTick: (p, i) => { pips[i].querySelector("i").style.width = (p * 100).toFixed(1) + "%"; },
 });
 show(0);
+K.mountPeek(card);
 K.refreshHud();
 </script>
 </body>

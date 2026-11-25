@@ -9,8 +9,6 @@
      the FOX "O" silhouette (Fox-o.svg). The O's counter (the slot) is the color field, and it fills with the dwell timer. */
   .stage { background: var(--field, #111); transition: background-color 1s var(--ease-inout); }
   .slide { position: absolute; inset: 0; }
-  /* Page nav stays visible: the real nav strip, screened so its black drops out over the color field */
-  .stage .page-nav { mix-blend-mode: screen; }
 
   /* Photo layer: full-stage, masked to the O. Mask size/position animate between window, bleed and travel states. */
   .win {
@@ -49,11 +47,7 @@
   .title img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 34px rgba(0,0,0,.4)); }
   .bl { position: absolute; left: 120px; bottom: 96px; width: 700px; display: flex; flex-direction: column; align-items: flex-start; }
   .bl > * + * { margin-top: 18px; }
-  .bl .tagline { color: #fff; font-size: 30px; letter-spacing: -.005em; text-transform: none; font-weight: 800; }
   .bl .ctas { margin-top: 28px !important; }
-  .bl .livebar__track { width: 300px; }
-  .coords { position: absolute; bottom: 44px; transform: translateX(-50%); white-space: nowrap; }
-  .br { position: absolute; right: 120px; bottom: 44px; color: var(--ink-2); }
   .stagger > * { --delay: 520ms; }
 </style>
 </head>
@@ -80,41 +74,31 @@ const MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://w
 /* Window geometry (stage px) */
 const H0 = 800, W0 = H0 * 1216.55 / 1239.94, CX = 1330, CY = 580, BLEED_K = 3.8;
 
-/* Per-title field color (picked from each title's art) + poster metadata line. Coordinates / schedule text is mock. */
+/* Per-title field color (picked from each title's art) */
 const POSTER = {
-  "eagles-cowboys": { field: "#0b4a50", coords: "39.9008° N, 75.1675° W · Philadelphia" },
-  "best-medicine":  { field: "#d97a2b", coords: "New episodes · Tuesdays 8/7c" },
-  "accused":        { field: "#5a1d2a", coords: "Season 2 · Tuesdays 9/8c" },
-  "fc-juarez":      { field: "#14955a", coords: "31.7383° N, 106.4535° W · Ciudad Juárez" },
-  "fox-soul":       { field: "#2f45e6", coords: "Free · 24/7 · FOX One" },
+  "eagles-cowboys": { field: "#0b4a50" },
+  "best-medicine":  { field: "#d97a2b" },
+  "accused":        { field: "#5a1d2a" },
+  "fc-juarez":      { field: "#14955a" },
+  "fox-soul":       { field: "#2f45e6" },
 };
 
 const stage = K.stage, host = document.getElementById("slides"), N = K.data.length;
-const pad2 = (n) => String(n).padStart(2, "0");
 let cur = null, bleedManual = null;
 
 function build(i) {
   const d = K.data[i], P = POSTER[d.id];
   const el = document.createElement("div"); el.className = "slide";
-  const status = d.type === "live"
-    ? `<span class="badge badge--live"><span class="dot"></span>${d.status.badge}</span>
-       <span class="score"><span class="score__t" style="--c:${d.score.away.color}">${d.score.away.abbr} <em>${d.score.away.score}</em></span><span class="score__t" style="--c:${d.score.home.color}">${d.score.home.abbr} <em>${d.score.home.score}</em></span><span class="score__clock">${d.score.clock}</span></span>`
-    : d.status ? `<span class="badge badge--${d.status.kind || "new"}">${d.status.badge}</span>` : "";
   el.innerHTML = `
     <div class="win"><div class="pan"><div class="art">${K.art(d)}</div></div><div class="scrim"></div></div>
     <div class="frame" style="left:${CX - W0 / 2}px;top:${CY - H0 / 2}px;width:${W0}px;height:${H0}px"><div class="slot"><i></i></div></div>
     <div class="copy">
-      <div class="tl stagger"><span class="pill" style="--i:0">${d.typeLabel}</span><span class="mono" style="--i:1">No. ${pad2(i + 1)} / ${pad2(N)}</span></div>
-      <div class="status stagger"><span style="--i:1;display:flex;gap:14px">${status}</span></div>
-      <div class="title stagger"><img style="--i:2" src="${d.logo}" alt="${d.logoAlt || ""}" draggable="false"></div>
+      <div class="title stagger"><img style="--i:0" src="${d.logo}" alt="${d.logoAlt || ""}" draggable="false"></div>
       <div class="bl stagger">
-        <div class="tagline" style="--i:3">${d.tagline}</div>
-        <div class="meta" style="--i:4">${d.meta.map((m, k) => k === 0 ? `<span class="net">${m}</span>` : `<span>${m}</span>`).join("")}</div>
-        ${d.live ? `<div style="--i:5">${K.livebar(d)}</div>` : ""}
-        <div class="ctas" style="--i:6">${d.ctas.map((c, k) => k === 0 ? `<span class="btn is-focused">${K.ICONS[c.icon]}${c.label}</span>` : `<span class="btn btn--sq">${K.ICONS[c.icon]}</span>`).join("")}</div>
+        ${K.ui.metaRow(d).replace('class="meta"', 'style="--i:1" class="meta"')}
+        <div class="tagline" style="--i:2">${d.tagline}</div>
+        ${K.ui.ctas(d).replace('class="ctas', 'style="--i:3" class="ctas')}
       </div>
-      <div class="coords mono stagger" style="left:${CX}px"><span style="--i:5;display:block">${P.coords}</span></div>
-      <div class="br mono stagger"><span style="--i:6;display:block">${d.shortLabel}</span></div>
     </div>`;
   /* Title art: normalise by area so wide and tall logos read at similar weight, then hang it over the window's left edge */
   const img = el.querySelector(".title img"), box = el.querySelector(".title");
@@ -192,6 +176,7 @@ K.rot = K.Rotator({
   },
 });
 show(0);
+K.mountPeek(K.stage, "right:120px;bottom:96px");
 K.refreshHud();
 </script>
 </body>

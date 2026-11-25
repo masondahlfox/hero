@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="shared/base.css">
 <style>
   .stage { background: #050506; }
-  .tile { position: absolute; border-radius: 22px; overflow: hidden; background: #121214;
+  .tile { position: absolute; border-radius: var(--r-tile); overflow: hidden; background: #121214;
     transition: left .95s cubic-bezier(.7, 0, .2, 1), top .95s cubic-bezier(.7, 0, .2, 1), width .95s cubic-bezier(.7, 0, .2, 1), height .95s cubic-bezier(.7, 0, .2, 1), border-radius .95s; }
   .tile .art { inset: 0; }
   .tile.feat { z-index: 2; }
@@ -18,7 +18,7 @@
   .ct .ov .lab small { font: 800 13px/1 var(--f-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); display: flex; gap: 7px; align-items: center; }
   .ct .ov .lab small i { width: 8px; height: 8px; border-radius: 50%; background: var(--live-hot); animation: pulse 1.6s infinite; }
   .ct .ov img { max-height: 46px; max-width: 200px; align-self: flex-start; }
-  .ct .ov .lt { font: 400 28px/1 "Didot", Georgia, serif; }
+  .ct .ov .lt { font: 400 34px/1 var(--f-display); text-transform: uppercase; }
   .ct .fbadge { position: absolute; left: 22px; top: 20px; opacity: 0; transition: opacity .4s .5s; }
   .ct.feat .fbadge { opacity: 1; }
   .ct .prog { position: absolute; left: 22px; right: 22px; bottom: 18px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.22); opacity: 0; transition: opacity .4s; }
@@ -32,25 +32,12 @@
   .info .meta-block > * + * { margin-top: 14px; }
   .info .logo img { max-height: 112px; max-width: 100%; }
   .info .logo--type { font-size: 64px; }
-  .info .meta { gap: 20px; font-size: 21px; }
+  .info .meta { gap: 20px; }
   .info .ctas { margin-top: 20px !important; }
-  .info .livebar { white-space: nowrap; font-size: 17px; } .info .livebar__track { width: 220px; }
   .is-active .stagger > * { --delay: 120ms; animation-duration: .6s; }
 
   .aux { background: color-mix(in srgb, var(--acc, #333) 22%, #0d0d0f); transition-property: left, top, width, height, border-radius, background; }
-  .aux h4 { font: 800 14px/1 var(--f-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 18px; display: flex; gap: 8px; align-items: center; }
-  .aux h4 i { width: 9px; height: 9px; border-radius: 50%; background: var(--live-hot); animation: pulse 1.6s infinite; }
-  .sb { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 18px; align-items: center; font-variant-numeric: tabular-nums; }
-  .sb b { font: 800 30px/1 var(--f-ui); } .sb em { font: 800 54px/1 var(--f-ui); font-style: normal; text-align: right; }
-  .sb span { height: 8px; border-radius: 4px; background: var(--c); }
-  .wp { margin-top: 18px; font: 600 17px/1 var(--f-ui); color: var(--ink-2); }
-  .wp .bar { margin-top: 10px; height: 8px; border-radius: 4px; background: #869397; overflow: hidden; } .wp .bar i { display: block; height: 100%; width: 68%; background: #00a5b5; }
-  .big { font: 800 118px/.9 var(--f-ui); letter-spacing: -.04em; }
-  .big small { font-size: 46px; letter-spacing: -.02em; }
-  .sub { margin-top: 14px; font: 500 21px/1.35 var(--f-ui); color: var(--ink-2); max-width: 420px; }
-  .aux .countdown { flex-direction: column; align-items: flex-start; gap: 14px; }
-  .aux .countdown__u { min-width: 82px; padding: 12px 8px 10px; } .aux .countdown__u b { font-size: 44px; }
-  .aux .countdown__units { display: flex; gap: 10px; }
+  .auxline { position: absolute; left: 0; right: 0; bottom: 0; font: 700 40px/1.12 var(--f-ui); letter-spacing: -.01em; color: #fff; }
 </style>
 </head>
 <body>
@@ -76,21 +63,14 @@ const LAYOUT = {
   "fox-soul":       { feat: [5, 12, 1, 4], info: [1, 4, 1, 4], aux: [1, 4, 5, 6], t: [[5, 6, 5, 6], [7, 8, 5, 6], [9, 10, 5, 6], [11, 12, 5, 6]] },
 };
 
-const AUX = {
-  "eagles-cowboys": (d) => `<h4><i></i>Live · ${d.score.clock}</h4>
-    <div class="sb"><span style="--c:${d.score.away.color};width:8px"></span><b>${d.score.away.abbr}</b><em>${d.score.away.score}</em>
-      <span style="--c:${d.score.home.color};width:8px"></span><b>${d.score.home.abbr}</b><em>${d.score.home.score}</em></div>`,
-  "best-medicine": () => `<h4>New episode</h4><div class="big">S1<small> · </small>E9</div><div class="sub">New episodes Tuesdays 8/7c on FOX, next day on FOX One.</div>`,
-  "accused": (d) => `<h4>${d.sponsor.label} ${d.sponsor.name}</h4><div class="big">96<small>%</small></div><div class="sub">of FOX One viewers recommend it — past 30 days.</div>`,
-  "fc-juarez": () => `<h4>Full match replay</h4><div class="big">90<small>'</small></div><div class="sub">Every Liga MX match, live and on demand on FOX One.</div>`,
-  "fox-soul": () => `<h4>Streaming free</h4><div class="big">24<small>/7</small></div><div class="sub">Black culture, news and entertainment, always on.</div>`,
-};
+// Aux tile carries the one short line, big — no stats or scores
+const AUX = (d) => `<div class="auxline">${d.tagline}</div>`;
 
 const tiles = K.data.map((d) => {
   const el = document.createElement("div"); el.className = "tile ct";
   el.innerHTML = `<div class="art">${K.art(d)}</div>
-    <div class="ov"><div class="lab"><small>${d.type === "live" ? "<i></i>" : ""}${d.typeLabel}</small>${d.logo ? `<img src="${d.logo}" alt="">` : `<div class="lt">${d.logoText}</div>`}</div></div>
-    <div class="fbadge">${d.type === "live" ? '<span class="badge badge--live"><span class="dot"></span>Live</span>' : `<span class="badge badge--${(d.status && d.status.kind) || "new"}">${d.shortLabel}</span>`}</div>
+    <div class="ov"><div class="lab">${d.logo ? `<img src="${d.logo}" alt="">` : `<div class="lt">${d.logoText}</div>`}</div></div>
+    <div class="fbadge">${K.ui.badge(d, { tile: true })}</div>
     <div class="prog"><i></i></div>`;
   board.append(el); return el;
 });
@@ -116,8 +96,8 @@ function show(i, prev) {
   tiles.forEach((t, j) => { t.classList.toggle("feat", j === i); t.querySelector(".prog i").style.width = "0"; });
   aux.style.setProperty("--acc", d.type === "live" ? "#00a5b5" : d.accent);
   const first = prev === undefined;
-  swap(info, K.metaBlock(d, { noSocial: true, noCountdown: true }), first ? 0 : 520);
-  swap(aux, AUX[d.id](d), first ? 0 : 620);
+  swap(info, K.metaBlock(d, { noTagline: true }), first ? 0 : 520);
+  swap(aux, AUX(d), first ? 0 : 620);
   K.syncVideos(tiles[i]);
 }
 

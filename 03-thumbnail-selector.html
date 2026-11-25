@@ -59,7 +59,6 @@ const thumbsHTML = K.data.map((item) => `
     <div class="thumb__img"><div class="art">${K.art(item, "all", { still: true })}</div><div class="shade"></div>
       ${item.logo ? `<img class="logo-mini" src="${item.logo}" alt="">` : `<div class="logo-mini logo-mini--type">${item.logoText}</div>`}
       <div class="thumb__bar"><i></i></div></div>
-    <div class="thumb__label">${item.type === "live" ? '<span class="ldot"></span>' : ""}${item.shortLabel}</div>
   </div>`).join("");
 card.insertAdjacentHTML("beforeend", `<div class="thumbs">${thumbsHTML}</div>`);
 

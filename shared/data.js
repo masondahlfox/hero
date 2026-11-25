@@ -25,10 +25,10 @@
         clock: "3RD · 8:42"
       },
       live: { startedMinAgo: 98, durationMin: 210 },
-      meta: ["FOX", "NFL", "Football", "Live"],
+      meta: ["FOX", "4K", "NFL"],
       tagline: "NFC East Rivalry",
       social: { live: true, text: "1.4M watching now on FOX One" },
-      ctas: [{ label: "Watch Live", icon: "play" }, { icon: "restart", label: "Start Over" }],
+      ctas: [{ label: "Watch Live", icon: "play" }, { icon: "plus", label: "My Stuff" }, { icon: "bell", label: "Notify Me" }],
       dwell: 12000
     },
     {
@@ -42,10 +42,10 @@
       logoAlt: "Best Medicine",
       art: { kind: "video", src: A("best-medicine", "video.mp4"), poster: A("best-medicine", "video-poster.jpg"), still: A("best-medicine", "key-16x9.jpg") },
       status: { badge: "New Episode", kind: "new" },
-      meta: ["FOX", "Comedy", "Series", "TV-14"],
+      meta: ["FOX", "TV-14", "Comedy"],
       tagline: "Season 2 Now Streaming",
       social: { text: "New episodes Tuesdays on FOX, next day on FOX One" },
-      ctas: [{ label: "Watch Now", icon: "play" }, { icon: "plus", label: "My Stuff" }],
+      ctas: [{ label: "Watch Now", icon: "play" }, { icon: "plus", label: "My Stuff" }, { icon: "bell", label: "Notify Me" }],
       dwell: 8000
     },
     {
@@ -59,10 +59,10 @@
       logoAlt: "Accused",
       art: { kind: "video", src: A("accused", "video.mp4"), poster: A("accused", "video-poster.jpg"), still: A("accused", "key-16x9.jpg") },
       sponsor: { label: "Presented by", name: "American" },
-      meta: ["FOX", "Drama", "Series", "TV-14"],
+      meta: ["FOX", "TV-14", "Drama"],
       tagline: "All-New Episodes",
       social: { icon: true, text: "Recommended by more than 96% of FOX One viewers in the past 30 days" },
-      ctas: [{ label: "Watch Now", icon: "play" }, { icon: "plus", label: "My Stuff" }],
+      ctas: [{ label: "Watch Now", icon: "play" }, { icon: "plus", label: "My Stuff" }, { icon: "bell", label: "Notify Me" }],
       dwell: 8000
     },
     {
@@ -75,11 +75,10 @@
       logo: A("fc-juarez", "logo.png"),   /* typeset placeholder — no title art supplied */
       logoAlt: "FC Juárez",
       art: { kind: "video", src: A("fc-juarez", "video.mp4"), poster: A("fc-juarez", "video-poster.jpg") },
-      status: { badge: "Full Match", kind: "new" },
-      meta: ["FOX", "Liga MX", "Soccer", "Replay"],
+      meta: ["FOX", "4K", "Liga MX"],
       tagline: "Bravos de Juárez",
       social: { text: "Every Liga MX match, live and on demand on FOX One" },
-      ctas: [{ label: "Watch Now", icon: "play" }, { icon: "plus", label: "My Stuff" }],
+      ctas: [{ label: "Watch Now", icon: "play" }, { icon: "plus", label: "My Stuff" }, { icon: "bell", label: "Notify Me" }],
       dwell: 8000
     },
     {
@@ -92,11 +91,10 @@
       logo: A("fox-soul", "logo.png"),
       logoAlt: "FOX Soul",
       art: { kind: "img", src: A("fox-soul", "key-16x9.jpg") },
-      status: { badge: "Free 24/7", kind: "new" },
-      meta: ["FOX Soul", "Culture", "News", "Entertainment"],
+      meta: ["FOX Soul", "HD", "Culture"],
       tagline: "Black Culture, Always On",
       social: { text: "Streaming free around the clock on FOX One" },
-      ctas: [{ label: "Watch Now", icon: "play" }, { icon: "plus", label: "My Stuff" }],
+      ctas: [{ label: "Watch Now", icon: "play" }, { icon: "plus", label: "My Stuff" }, { icon: "bell", label: "Notify Me" }],
       dwell: 8000
     }
   ];

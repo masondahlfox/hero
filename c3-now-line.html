@@ -32,7 +32,7 @@
   .tl { position: absolute; z-index: 5; left: 0; right: 0; top: 0; bottom: 0; pointer-events: none; }
   .axis { position: absolute; left: 120px; right: 120px; top: 962px; height: 2px; background: rgba(255,255,255,.22); }
   .tick { position: absolute; top: 954px; width: 1px; height: 18px; background: rgba(255,255,255,.35); }
-  .tick b { position: absolute; top: 26px; left: 50%; transform: translateX(-50%); font: 700 15px/1 var(--f-ui); color: var(--ink-3); white-space: nowrap; letter-spacing: .06em; }
+  .tick b { display: none; position: absolute; top: 26px; left: 50%; transform: translateX(-50%); font: 700 15px/1 var(--f-ui); color: var(--ink-3); white-space: nowrap; letter-spacing: .06em; }
   .liveseg { position: absolute; top: 958px; height: 10px; border-radius: 5px; background: rgba(224,16,47,.35); overflow: hidden; }
   .liveseg i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--live-hot); }
   .pt { position: absolute; top: 955px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: #000; box-shadow: inset 0 0 0 3px #fff; }
@@ -50,7 +50,7 @@
   .tc.on .tc__img::after { box-shadow: inset 0 0 0 4px #fff; }
   .tc__img .art { inset: 0; }
   .tc__img img.lg { position: absolute; left: 14px; bottom: 12px; max-width: 150px; max-height: 50px; }
-  .tc__img .lgt { position: absolute; left: 14px; bottom: 12px; font: 400 24px/1 "Didot", Georgia, serif; }
+  .tc__img .lgt { position: absolute; left: 14px; bottom: 12px; font: 400 30px/1 var(--f-display); text-transform: uppercase; }
   .tc__img .sh { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.65), rgba(0,0,0,0) 65%); }
   .tc__bar { position: absolute; left: 14px; right: 14px; top: 10px; height: 3px; border-radius: 2px; background: rgba(255,255,255,.25); opacity: 0; }
   .tc.on .tc__bar { opacity: 1; } .tc__bar i { display: block; height: 100%; width: 0; background: #fff; }
@@ -62,7 +62,7 @@
   <div class="bgs" id="bgs"></div>
   <div class="bgshade"></div>
   <div class="edge" id="eL"></div><div class="edge" id="eR"></div>
-  <div class="now" id="now"><div class="now__tag"><i></i>NOW <span id="clock"></span></div></div>
+  <div class="now" id="now"><div class="now__tag"><i></i>NOW</div></div>
   <div class="meta-host" id="meta"></div>
   <div class="tl" id="tl"></div>
 </div></div>
@@ -79,11 +79,11 @@ const K = HeroKit.init({
 const $ = (id) => document.getElementById(id), N = K.data.length;
 // Minutes relative to now (mock): when each title is "anchored" in time
 const WHEN = {
-  "eagles-cowboys": { t: 0, label: () => `Live · ${K.data[0].score.clock}` },
-  "best-medicine":  { t: -1260, label: () => "Aired last night · On demand" },
-  "accused":        { t: -2840, label: () => "Aired Tue · On demand" },
-  "fc-juarez":      { t: -4100, label: () => "Sat · Full match replay" },
-  "fox-soul":       { t: 360, label: () => "FOX Soul · Free 24/7" },
+  "eagles-cowboys": { t: 0, label: () => "Live" },
+  "best-medicine":  { t: -1260, label: () => "Last night" },
+  "accused":        { t: -2840, label: () => "Tuesday" },
+  "fc-juarez":      { t: -4100, label: () => "Saturday" },
+  "fox-soul":       { t: 360, label: () => "Up next" },
 };
 const NOWX = 900, L = 120, R = 1800, TAU = 30;
 const kL = (NOWX - L) / Math.log(1 + 4320 / TAU), kR = (R - NOWX) / Math.log(1 + 8640 / TAU);
@@ -118,8 +118,8 @@ K.data.forEach((d, i) => {
 tl.innerHTML = html + `<svg class="leaders" viewBox="0 0 1920 1080">${leaders}</svg>`;
 const cards = [...tl.querySelectorAll(".tc")], paths = [...tl.querySelectorAll("svg path")];
 
-function clock() { $("clock").textContent = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + " ET"; }
-clock(); setInterval(clock, 15000);
+
+// (clock readout removed: minimal metadata)
 
 const eL = $("eL"), eR = $("eR");
 function show(i, prev) {

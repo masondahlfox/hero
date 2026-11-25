@@ -31,8 +31,7 @@
   /* State A — centered composition under the window */
   .under { position: absolute; z-index: 10; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 18px; transition: opacity .4s, transform .6s var(--ease-out); }
   .under .meta { justify-content: center; }
-  .under .hint { font: 600 19px/1 var(--f-ui); color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; margin-top: 8px; }
-  .under .hint kbd { font: 700 15px/1 var(--f-ui); padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,.14); color: #fff; }
+  .under .ctas { margin-top: 12px !important; }
   .under.off { opacity: 0; transform: translateY(20px); pointer-events: none; }
   .under > * { opacity: 0; transform: translateY(16px); }
   .under.on > * { opacity: 1; transform: none; transition: opacity .6s var(--ease-out), transform .6s var(--ease-out); }
@@ -48,7 +47,7 @@
   .lockup .logo--type { font-size: 84px; }
 
   .lk.gone { opacity: 0; transition: opacity .3s; }
-  .seq { position: absolute; z-index: 12; left: 120px; right: 120px; bottom: 54px; display: flex; gap: 10px; }
+  .seq { display: none !important; position: absolute; z-index: 12; left: 120px; right: 120px; bottom: 54px; display: flex; gap: 10px; }
   .seq div { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,.2); overflow: hidden; }
   .seq i { display: block; height: 100%; width: 0; background: #fff; }
 </style>
@@ -133,12 +132,9 @@ async function load(i) {
   portal.innerHTML = `<div class="art">${K.art(item)}</div>`;
   atmo.innerHTML = `<div class="art">${K.art(item, "all", { still: true })}</div>`; atmo.classList.add("on");
   lockup.innerHTML = `<div class="lk">${K.metaBlock(item)}</div>`;
-  under.innerHTML = `${item.type === "live"
-      ? `<div class="status-row"><span class="badge badge--live"><span class="dot"></span>Live</span><span class="score"><span class="score__t" style="--c:${item.score.away.color}">${item.score.away.abbr} <em>${item.score.away.score}</em></span><span class="score__t" style="--c:${item.score.home.color}">${item.score.home.abbr} <em>${item.score.home.score}</em></span><span class="score__clock">${item.score.clock}</span></span></div>`
-      : item.status ? `<div class="status-row"><span class="badge badge--${item.status.kind}">${item.status.badge}</span></div>` : `<div class="sponsor">${item.sponsor.label} <b>${item.sponsor.name}</b></div>`}
-    <div class="meta">${item.meta.map((m, n) => n ? `<span>${m}</span>` : `<span class="net">${m}</span>`).join("")}</div>
+  under.innerHTML = `${K.ui.metaRow(item)}
     <div class="tagline">${item.tagline}</div>
-    <div class="hint">Press <kbd>OK</kbd> to step inside</div>`;
+    ${K.ui.ctas(item)}`;
   under.style.top = (A.y + A.h + 40) + "px";
   if (item.type === "live") under.style.top = (A.y + A.h + 34) + "px";
   void portal.offsetWidth;
@@ -172,7 +168,9 @@ K.rot = K.Rotator({
   onChange: (i) => load(i),
   onTick: (p, i, el) => { seqBars[i].style.width = (p * 100).toFixed(1) + "%"; if (el > DIVE_AT(i) && cur === i) dive(); },
 });
-K.onKey((e) => { if (e.key === "Enter") { dive(); return true; } });
+// OK on the focused Watch button steps inside the title
+K.onKey((e) => { if (e.key === "Enter" && K.zone === "hero" && K.focus.cta === 0) { dive(); return true; } });
+K.mountPeek(K.stage, "right:120px;bottom:72px;z-index:14");
 Promise.all(K.data.map(analyse)).then(() => { load(0); K.refreshHud(); });
 </script>
 </body>

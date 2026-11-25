@@ -10,7 +10,6 @@
   /* Card → full-bleed. (Prototype animates box geometry; production should scale a video layer with transforms.) */
   .card { transition: left var(--tk) var(--tk-ease), top var(--tk) var(--tk-ease), width var(--tk) var(--tk-ease), height var(--tk) var(--tk-ease), border-radius var(--tk) var(--tk-ease); }
   .stage.takeover .card { left: 0; top: 0; width: 1920px; height: 1080px; border-radius: 0; z-index: 70; }
-  .stage.takeover .page-nav { opacity: 0; transform: translateY(-40px); }
   .stage.takeover .page-rail { opacity: 0; transform: translateY(60px); }
 
   .slide { opacity: 0; transition: opacity 1s var(--ease-std); }
@@ -47,7 +46,8 @@
   .tk-hint kbd { font: 700 16px/1 var(--f-ui); padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,.18); color: #fff; }
   .stage.takeover .tk-chip { opacity: 1; transform: none; }
   .stage.takeover .tk-hint { opacity: 1; }
-  .tk-arm { position: absolute; z-index: 40; right: var(--pad); bottom: var(--pad); display: flex; align-items: center; gap: 12px; font: 600 18px/1 var(--f-ui); color: var(--ink-2); opacity: 0; transition: opacity .3s; }
+  .stage.takeover .peek { opacity: 0; } .peek { transition: opacity .4s; }
+  .tk-arm { position: absolute; z-index: 40; right: var(--pad); bottom: calc(var(--pad) + 186px); display: flex; align-items: center; gap: 12px; font: 600 18px/1 var(--f-ui); color: var(--ink-2); opacity: 0; transition: opacity .3s; }
   .tk-arm.is-on { opacity: 1; }
   .stage.takeover .tk-arm { opacity: 0; }
   .tk-arm .ring { width: 30px; height: 30px; }
@@ -58,7 +58,7 @@
   .toast i { font-style: normal; padding: 6px 10px; border-radius: 6px; background: var(--live); color: #fff; font-size: 18px; }
   .toast.is-on { opacity: 1; transform: none; }
 
-  .pips { position: absolute; z-index: 30; right: var(--pad); top: var(--pad); display: flex; gap: 8px; transition: opacity .4s; }
+  .pips { display: none !important; position: absolute; z-index: 30; right: var(--pad); top: var(--pad); display: flex; gap: 8px; transition: opacity .4s; }
   .pip { width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.28); overflow: hidden; }
   .pip i { display: block; height: 100%; width: 0; background: #fff; }
   .pip.live { background: rgba(224,16,47,.45); } .pip.live i { background: var(--live-hot); }
@@ -76,7 +76,7 @@
 <script>
 const K = HeroKit.init({
   title: "06 · Live Takeover",
-  notes: "Live gets priority: after 3.5s idle on a live slide the card expands to full-bleed, nav and rail clear, and metadata collapses to badge + score + CTA while the muted live feed plays. Any D-pad press returns to the card. Live dwells 18s; others 8s.",
+  notes: "Live gets priority: after 3.5s idle on a live slide the card expands to full-bleed under the nav, the rail clears, and metadata collapses to badge + CTAs while the muted live feed plays. Any D-pad press returns to the card. Live dwells 18s; others 8s.",
   extraKeys: [["Enter", "Enter / exit takeover (live slide)"]]
 });
 const stage = K.stage, card = document.getElementById("card");
@@ -96,25 +96,15 @@ card.insertAdjacentHTML("beforeend", `
   <div class="pips">${K.data.map((d) => `<div class="pip ${d.type === "live" ? "live" : ""}"><i></i></div>`).join("")}</div>
   <div class="tk-arm" id="arm"><svg class="ring" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14"/></svg>Live preview</div>
   <div class="tk-chip">${K.ICONS.mute}Live preview · Muted</div>
-  <div class="tk-hint">Press <kbd>OK</kbd> to watch full screen &nbsp;·&nbsp; <kbd>◀ ▶</kbd> browse</div>
-  <div class="toast" id="toast"><i>FG</i> PHI 20 – DAL 13 · 3RD 6:15</div>`);
+`);
 const slides = [...card.querySelectorAll(".slide")], pips = [...card.querySelectorAll(".pip")];
-const arm = document.getElementById("arm"), armRing = arm.querySelector("circle"), toast = document.getElementById("toast");
-let prevT, userExit = false, scored = false;
+const arm = document.getElementById("arm"), armRing = arm.querySelector("circle");
+let prevT, userExit = false;
 
 function setTakeover(on) {
   if (stage.classList.contains("takeover") === on) return;
   stage.classList.toggle("takeover", on);
-  if (on && !scored) setTimeout(score, 2600);
 }
-function score() {
-  if (!stage.classList.contains("takeover") || scored) return;
-  scored = true;
-  document.querySelectorAll('[data-side="home"]').forEach((em) => { em.textContent = "20"; em.classList.remove("bump"); void em.offsetWidth; em.classList.add("bump"); });
-  document.querySelectorAll(".score__clock").forEach((c) => (c.textContent = "3RD · 6:15"));
-  toast.classList.add("is-on"); setTimeout(() => toast.classList.remove("is-on"), 3200);
-}
-
 function show(i, prev) {
   setTakeover(false); userExit = false;
   slides.forEach((s) => s.classList.remove("is-prev"));
@@ -142,8 +132,8 @@ K.rot = K.Rotator({
 
 K.onKey((e) => {
   const on = stage.classList.contains("takeover");
-  if (e.key === "Enter") {
-    if (K.data[K.rot.index].type !== "live") return true;
+  if (e.key === "Enter" && K.zone === "hero" && K.focus.cta === 0) {
+    if (K.data[K.rot.index].type !== "live") return false;
     userExit = on; setTakeover(!on); return true;
   }
   if (on && (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "Escape" || e.key === "Backspace")) {
@@ -152,6 +142,7 @@ K.onKey((e) => {
 });
 
 show(0);
+K.mountPeek(card);
 K.refreshHud();
 </script>
 </body>

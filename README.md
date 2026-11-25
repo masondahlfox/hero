@@ -11,7 +11,7 @@ Open `index.html` in Chrome or Safari. Everything runs locally from `file://` wi
 | `c4-bento-morph.html` | Per-content-type bento layouts (live / series / premiere) that re-flow into each other. |
 | `c5-depth-queue.html` | Rotation as a 3D queue; the camera flies forward through it. |
 | `c6-fox-o-window.html` | Editorial poster: per-title color field, photo seen through the FOX-O silhouette (`Fox-o.svg`), title hung over the window edge. |
-| `c7-game-dash.html` | Game-console dashboard: full-bleed backdrop, tile row with a glowing focus ring, stat-style metadata, toasts and ambient particles under the FOX One nav. |
+| `c7-game-dash.html` | Game-console dashboard: full-bleed backdrop, tile row with a glowing focus ring (← → move along it, OK plays), minimal metadata and ambient particles under the FOX One nav. |
 | `c9-spine-shelf.html` | Shelf: the current title is an open panel, the rest stand beside it as angled spines; the next spine's edge fills as the timer. |
 | `c10-film-gate.html` | A film strip slices across the hero and creeps toward a gate; the next frame reaching the gate opens out to full-bleed. |
 | `c11-long-exposure.html` | The next title rides a long-exposure light streak on the right edge, which sweeps across and resolves into the picture. |
@@ -19,7 +19,9 @@ Open `index.html` in Chrome or Safari. Everything runs locally from `file://` wi
 
 ## Controls (every prototype)
 `← →` slide · `Space` pause · `S` safe zones · `G` grid · `O` overlay home template · `N` nav · `R` next rail · `F` fit ↔ 1:1 · `H` hide panel · `[ ]` prev/next prototype.
-Extras: C1 `M` marquee mode, `T` light theme · C2 `Enter` dive · C6 `B` full-bleed · C7 `Enter` launch, `T` toast, `P` particles · 06 `Enter` takeover · 07 `↑ ↓`. · C9–C11 D-pad: `→` through the CTAs, past `+` brings in the next title; `↑` nav, `↓` rail.
+Extras: C1 `M` marquee mode, `T` light theme · C2 `Enter` dive · C6 `B` full-bleed · C7 `Enter` launch, `P` particles · 06 `Enter` takeover.
+
+Shared design system: `shared/base.css` holds the FOX One tokens and components (nav, badges, meta row, buttons, tiles, Up-next peek) measured from the home template; `shared/stage.js` renders them (`HeroKit.ui`) and runs the D-pad focus model: ← → across the hero buttons (past the end pages the hero), ↑ to the nav, ↓ to the Live Lineup row.
 
 ## Swapping content
 The carousel shows only the titles that have a folder in `assets/titles/` and loops through them:

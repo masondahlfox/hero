@@ -20,7 +20,7 @@
   .is-active .stagger > * { --delay: 620ms; }
 
   /* Pagination — centered in the 48px gutter between card and rail */
-  .dots { position: absolute; z-index: 30; top: 948px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; }
+  .dots { display: none !important; position: absolute; z-index: 30; top: 948px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; }
   .pdot { width: 10px; height: 10px; border-radius: 5px; background: rgba(255,255,255,.3); overflow: hidden; transition: width .5s var(--ease-out), background .3s; }
   .pdot i { display: block; height: 100%; width: 0; background: #fff; }
   .pdot.is-active { width: 56px; background: rgba(255,255,255,.3); }

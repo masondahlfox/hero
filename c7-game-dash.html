@@ -24,51 +24,21 @@
   #fx { position: absolute; inset: 0; width: 1920px; height: 1080px; pointer-events: none; mix-blend-mode: screen; transition: opacity .5s; }
   .stage.no-fx #fx { opacity: 0; }
 
-  /* ---------- Page nav: the real FOX One nav strip, screened over the backdrop so it stays visible ---------- */
-  .stage .page-nav { mix-blend-mode: screen; }
-  .xp { position: absolute; z-index: 61; right: 230px; top: 48px; height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 18px; border-radius: 20px;
-    font: 600 19px/1 var(--f-ui); color: var(--ink-2); background: rgba(10,12,18,.45); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); transition: opacity .4s, transform .4s var(--ease-std); }
-  .xp i { width: 110px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.2); overflow: hidden; }
-  .xp i::before { content: ""; display: block; height: 100%; width: var(--xp, 64%); border-radius: 3px; background: linear-gradient(90deg, #ffcf5a, #ff6a00); transition: width .8s var(--ease-out); }
-  .xp .lvl { font-weight: 800; color: #ffcf5a; }
-  .stage.no-nav .xp { opacity: 0; transform: translateY(-40px); }
-
-  /* ---------- Toasts ---------- */
-  .toasts { position: absolute; z-index: 45; right: 96px; top: 150px; width: 520px; display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
-  .toast { width: 520px; display: flex; align-items: center; gap: 16px; padding: 12px 22px 12px 12px; border-radius: 14px;
-    background: rgba(14,16,24,.78); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 14px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.1);
-    transform: translateX(560px); opacity: 0; transition: transform .45s cubic-bezier(.2,1.1,.3,1), opacity .3s; }
-  .toast.in { transform: none; opacity: 1; }
-  .toast.out { transform: translateX(80px); opacity: 0; transition: transform .35s var(--ease-inout), opacity .3s; }
-  .toast .th { width: 58px; height: 58px; border-radius: 10px; overflow: hidden; flex: none; position: relative; box-shadow: 0 0 0 2px var(--c); }
-  .toast .th img { width: 100%; height: 100%; object-fit: cover; }
-  .toast .tx { flex: 1; min-width: 0; }
-  .toast b { display: block; font: 700 20px/1.2 var(--f-ui); }
-  .toast span { display: block; margin-top: 4px; font: 500 17px/1.2 var(--f-ui); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .toast small { font: 600 15px/1 var(--f-ui); color: var(--ink-3); align-self: flex-start; margin-top: 6px; }
-  .toast.ach { background: linear-gradient(90deg, rgba(60,40,0,.85), rgba(14,16,24,.82) 60%); box-shadow: 0 14px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,207,90,.5); }
-  .toast.ach .th { display: grid; place-items: center; background: radial-gradient(circle, #ffcf5a, #c97a00); box-shadow: 0 0 0 2px #ffcf5a, 0 0 24px rgba(255,207,90,.7); }
-  .toast.ach .th svg { width: 34px; height: 34px; fill: #3a2300; animation: medal 1s cubic-bezier(.2,1.6,.4,1) both .2s; }
-  .toast.ach b { color: #ffcf5a; }
-  @keyframes medal { from { transform: scale(0) rotate(-90deg); } to { transform: none; } }
-
   /* ---------- Tile row ---------- */
   .row { position: absolute; z-index: 20; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; transition: opacity .4s, transform .5s var(--ease-std); }
   .tile { position: absolute; left: 0; top: 380px; width: 380px; height: 380px; transform-origin: 0 50%; will-change: transform;
     transition: transform .34s cubic-bezier(.25,.9,.3,1.12), opacity .3s; }
   .tile.snap { transition: none; }
-  .tile .in { position: absolute; inset: 0; border-radius: 18px; overflow: hidden; background: #111; box-shadow: 0 18px 40px rgba(0,0,0,.5); }
+  .tile .in { position: absolute; inset: 0; border-radius: var(--r-tile); overflow: hidden; background: #111; box-shadow: 0 18px 40px rgba(0,0,0,.5); }
   .tile .in > img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.82) saturate(.9); transition: filter .3s; }
   .tile .in::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(0deg, rgba(0,0,0,.78), rgba(0,0,0,0) 55%); }
   .tile .lg { position: absolute; z-index: 2; left: 22px; right: 22px; bottom: 22px; height: 96px; display: flex; align-items: flex-end; }
   .tile .lg img { max-width: 100%; max-height: 100%; object-fit: contain; object-position: left bottom; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
-  .tile .chip { position: absolute; z-index: 2; left: 18px; top: 18px; display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 6px; font: 800 17px/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; background: rgba(0,0,0,.55); backdrop-filter: blur(6px); }
-  .tile .chip.live { background: var(--live-hot); }
-  .tile .chip.live i { width: 10px; height: 10px; border-radius: 50%; background: #fff; animation: pulse 1.4s infinite; }
+  .tile .in > .badge { position: absolute; z-index: 2; left: 18px; top: 18px; }
   .tile .bar { position: absolute; z-index: 3; left: 0; bottom: 0; height: 6px; width: 0; background: var(--c); box-shadow: 0 0 14px var(--c); opacity: 0; }
   .tile.f .bar { opacity: 1; }
   /* glow ring */
-  .tile .ring { position: absolute; inset: -9px; border-radius: 26px; opacity: 0; transition: opacity .25s;
+  .tile .ring { position: absolute; inset: -9px; border-radius: calc(var(--r-tile) + 9px); opacity: 0; transition: opacity .25s;
     background: conic-gradient(from var(--a), var(--c), #fff 12%, var(--c) 25%, color-mix(in srgb, var(--c) 30%, transparent) 50%, var(--c) 75%, #fff 87%, var(--c));
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; padding: 4px;
     filter: drop-shadow(0 0 14px var(--c)); animation: spin 4s linear infinite; }
@@ -84,32 +54,14 @@
   @keyframes pop { 40% { filter: brightness(1.35); } }
 
   /* ---------- Info ---------- */
-  .info { position: absolute; z-index: 30; left: 120px; right: 96px; top: 815px; transition: opacity .4s, transform .5s var(--ease-std); }
-  .ttl { display: flex; align-items: center; gap: 20px; height: 82px; }
-  .ttl h1 { font: 800 70px/1 var(--f-ui); letter-spacing: -.02em; text-shadow: 0 4px 24px rgba(0,0,0,.5); }
-  .ttl .kind { font: 700 17px/1 var(--f-ui); letter-spacing: .14em; text-transform: uppercase; padding: 8px 12px; border-radius: 6px; border: 2px solid color-mix(in srgb, var(--acc) 80%, #fff); color: #fff; background: color-mix(in srgb, var(--acc) 30%, transparent); }
-  .ttl .kind.live { border-color: var(--live-hot); background: var(--live-hot); display: flex; align-items: center; gap: 8px; }
-  .ttl .kind.live i { width: 10px; height: 10px; border-radius: 50%; background: #fff; animation: pulse 1.4s infinite; }
-  .stats { display: flex; gap: 72px; margin-top: 22px; }
-  .stat small { display: block; font: 600 19px/1 var(--f-ui); color: var(--ink-3); letter-spacing: .02em; }
-  .stat div { margin-top: 10px; display: flex; align-items: center; gap: 12px; font: 700 30px/1 var(--f-ui); font-variant-numeric: tabular-nums; }
-  .stat .meter { width: 150px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.18); overflow: hidden; }
-  .stat .meter i { display: block; height: 100%; width: 0; border-radius: 4px; background: var(--acc); box-shadow: 0 0 10px var(--acc); transition: width .9s var(--ease-out) .15s; }
-  .stat .medal { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle, #ffcf5a, #c97a00); box-shadow: 0 0 14px rgba(255,207,90,.6); }
-  .stat .medal svg { width: 20px; height: 20px; fill: #3a2300; }
-  .stat .tm { display: inline-flex; align-items: center; gap: 8px; }
-  .stat .tm i { width: 6px; height: 26px; border-radius: 3px; background: var(--c); }
+  .info { position: absolute; z-index: 30; left: 120px; right: 96px; top: 800px; transition: opacity .4s, transform .5s var(--ease-std); }
+  .ttl h1 { font: 400 104px/.9 var(--f-display); text-transform: uppercase; letter-spacing: .005em; text-shadow: 0 4px 24px rgba(0,0,0,.5); }
+  .info .meta { margin-top: 18px; }
+  .info .tagline { margin-top: 14px; }
   .info .swap { will-change: transform, opacity; }
   .info .swap.enter > * { animation: up .38s var(--ease-out) both; }
-  .info .swap.enter .stats { animation-delay: .06s; }
-  .info .swap.enter .stat:nth-child(2) { animation: up .38s var(--ease-out) .1s both; }
-  .info .swap.enter .stat:nth-child(3) { animation: up .38s var(--ease-out) .14s both; }
+  .info .swap.enter .meta { animation-delay: .06s; } .info .swap.enter .tagline { animation-delay: .1s; }
   @keyframes up { from { opacity: 0; transform: translateY(18px); } }
-  .hints { position: absolute; z-index: 30; right: 96px; bottom: 72px; display: flex; gap: 34px; font: 600 23px/1 var(--f-ui); color: var(--ink-2); transition: opacity .4s; }
-  .hints span { display: flex; align-items: center; gap: 12px; }
-  .hints kbd { min-width: 44px; height: 44px; padding: 0 10px; border-radius: 22px; display: grid; place-items: center; font: 800 16px/1 var(--f-ui); color: #05060a; background: #fff; }
-  .hints kbd.o { background: transparent; color: #fff; box-shadow: inset 0 0 0 2px rgba(255,255,255,.8); }
-
   /* ---------- Launch ---------- */
   .launch { position: absolute; z-index: 50; inset: 0; display: grid; place-items: center; pointer-events: none; opacity: 0; transition: opacity .35s; }
   .launch .box { display: flex; flex-direction: column; align-items: center; gap: 40px; transform: scale(.85); transition: transform .6s cubic-bezier(.2,1.3,.3,1); }
@@ -121,8 +73,7 @@
   .stage.launching .launch .box { transform: none; }
   .stage.launching .launch .ld i { width: 100%; transition: width 1.9s cubic-bezier(.5,0,.3,1) .2s; }
   .stage.launching .row { opacity: 0; transform: translateY(120px); }
-  .stage.launching .info, .stage.launching .hints { opacity: 0; transform: translateY(60px); }
-  .stage.launching .toasts { opacity: 0; transform: translateY(-40px); }
+  .stage.launching .info { opacity: 0; transform: translateY(60px); }
   .stage.launching .scrim { opacity: .55; transition: opacity .6s; }
 </style>
 </head>
@@ -133,12 +84,9 @@
   <div class="tint"></div>
   <canvas id="fx" width="960" height="540"></canvas>
 
-  <div class="xp" title="FOX One Rewards (mock)"><span class="lvl">LV 14</span><i></i><span id="pts">18,240 pts</span></div>
-  <div class="toasts" id="toasts"></div>
 
   <div class="row" id="row"></div>
   <div class="info" id="info"></div>
-  <div class="hints"><span><kbd>OK</kbd>Watch</span><span><kbd class="o">i</kbd>Details</span><span><kbd class="o">+</kbd>My Stuff</span></div>
 
   <div class="launch"><div class="box"><img id="lLogo" alt=""><div class="ld"><i></i></div><p id="lTxt">Starting</p></div></div>
 </div></div>
@@ -149,52 +97,14 @@
 <script>
 const K = HeroKit.init({
   title: "C7 · Game Dash",
-  notes: "A game-console dashboard for the hero. The focused title takes over the whole screen, and the rotation is a row of tiles where focus snaps from tile to tile with a glow ring, a shine sweep and a little overshoot. Under the row, stat-style metadata (live score, season progress, achievements) counts up like a game library. The FOX One page nav stays on top the whole time, with a rewards level chip beside the profile. Toasts slide in at top right for live moments and unlocks. Stats, points and toasts are mock.",
+  notes: "A game-console dashboard for the hero. The focused title takes over the whole screen, and the hero IS a row of tiles: ← → snap focus from tile to tile with a glow ring, a shine sweep and a little overshoot, and OK plays. Under the row, just the title, one meta row and one line. ↓ always leaves for the Live Lineup row, ↑ goes to the nav.",
   rail: false,
-  extraKeys: [["Enter", "Launch the focused title"], ["T", "Fire a notification toast"], ["P", "Particles on / off"]],
+  heroMode: "carousel",
+  extraKeys: [["P", "Particles on / off"]],
 });
 const N = K.data.length, stage = K.stage, row = document.getElementById("row"), info = document.getElementById("info"), bd = document.getElementById("bd");
-const STAR = '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"/></svg>';
 const name = (d) => d.logoAlt || d.id;
 const stillOf = (d) => d.art.still || d.art.poster || d.art.src;
-
-/* Mock game-style stats per title (swap for feed values) */
-const STATS = {
-  "eagles-cowboys": (d) => [
-    { l: "Live score", h: `<span class="tm" style="--c:${d.score.home.color}"><i></i>${d.score.home.abbr} <b data-n="${d.score.home.score}">0</b></span><span class="tm" style="--c:${d.score.away.color}"><i></i>${d.score.away.abbr} <b data-n="${d.score.away.score}">0</b></span>` },
-    { l: "Game clock", h: d.score.clock.replace("·", "&middot;") },
-    { l: "Game progress", h: `<span class="meter"><i data-w="${Math.round(d.live.startedMinAgo / d.live.durationMin * 100)}"></i></span><span>Q3</span>` },
-    { l: "Watching now", h: `<span><b data-n="1.4" data-d="1">0</b>M</span>` },
-  ],
-  "best-medicine": () => [
-    { l: "Up next", h: "S2 &middot; E4" },
-    { l: "Season progress", h: `<span class="meter"><i data-w="62"></i></span><span><b data-n="62">0</b>%</span>` },
-    { l: "Achievement hunt", h: `<span class="medal">${STAR}</span>Binge Starter` },
-  ],
-  "accused": () => [
-    { l: "Continue", h: "S2 &middot; E7 &middot; 34m left" },
-    { l: "Completion", h: `<span class="meter"><i data-w="41"></i></span><span><b data-n="41">0</b>%</span>` },
-    { l: "Achievement hunt", h: `<span class="medal">${STAR}</span>Case Closed` },
-  ],
-  "fc-juarez": () => [
-    { l: "Full match", h: "90 min &middot; Replay" },
-    { l: "Matches watched", h: `<span class="meter"><i data-w="41"></i></span><span><b data-n="7">0</b> / 17</span>` },
-    { l: "Achievement hunt", h: `<span class="medal">${STAR}</span>Bravo Supporter` },
-  ],
-  "fox-soul": () => [
-    { l: "Streaming", h: "Free &middot; 24/7" },
-    { l: "Watch streak", h: `<span class="meter"><i data-w="71"></i></span><span><b data-n="5">0</b> days</span>` },
-    { l: "Achievement hunt", h: `<span class="medal">${STAR}</span>Night Owl` },
-  ],
-};
-const TOASTS = [
-  { id: "eagles-cowboys", t: "Touchdown, Eagles", s: "PHI 17 – DAL 13 · 3rd quarter, watch live" },
-  { id: "accused", ach: true, t: "Achievement unlocked", s: "Case Closed · watched 5 episodes · +250 pts", pts: 250 },
-  { id: "best-medicine", t: "New episode unlocked", s: "Best Medicine · S2 E4 is ready to watch" },
-  { id: "fc-juarez", t: "Full match ready", s: "FC Juárez · all 90 minutes on demand" },
-  { id: "fox-soul", t: "2 friends are watching", s: "FOX Soul · streaming free right now" },
-  { id: "fc-juarez", ach: true, t: "Achievement unlocked", s: "Bravo Supporter · 7 matches · +100 pts", pts: 100 },
-];
 
 /* ---------- Backdrop layers (only the focused one decodes video) ---------- */
 const layers = K.data.map((d) => { const el = document.createElement("div"); el.className = "art"; el.innerHTML = K.art(d); bd.append(el); return el; });
@@ -210,7 +120,7 @@ function makeTile(vi) {
   const el = document.createElement("div"); el.className = "tile snap";
   el.style.setProperty("--c", d.type === "live" ? "#ff2a44" : d.accent);
   el.innerHTML = `<div class="halo"></div><div class="ring"></div><div class="in">${K.art(d, "all", { still: true })}
-    ${d.type === "live" ? `<span class="chip live"><i></i>Live</span>` : `<span class="chip">${d.shortLabel}</span>`}
+    ${K.ui.badge(d, { tile: true })}
     <div class="lg"><img src="${d.logo}" alt=""></div><div class="bar"></div></div>`;
   row.append(el); tiles.set(vi, el); return el;
 }
@@ -227,20 +137,9 @@ function layout() {
   const f = tiles.get(v); f.classList.remove("pop"); void f.offsetWidth; f.classList.add("pop");
 }
 
-/* ---------- Info + count-ups ---------- */
-function countUp(root) {
-  root.querySelectorAll("[data-n]").forEach((el) => {
-    const to = +el.dataset.n, dp = +(el.dataset.d || 0), t0 = performance.now();
-    const step = (t) => { const p = Math.min(1, (t - t0) / 700), e = 1 - Math.pow(1 - p, 3); el.textContent = (to * e).toFixed(dp); if (p < 1) requestAnimationFrame(step); };
-    requestAnimationFrame(step);
-  });
-  requestAnimationFrame(() => root.querySelectorAll("[data-w]").forEach((el) => (el.style.width = el.dataset.w + "%")));
-}
+/* ---------- Info: title · meta row · one line ---------- */
 function showInfo(d) {
-  const kind = d.type === "live" ? `<span class="kind live"><i></i>Live now</span>` : `<span class="kind">${d.typeLabel}</span>`;
-  info.innerHTML = `<div class="swap enter"><div class="ttl"><h1>${name(d)}</h1>${kind}</div>
-    <div class="stats">${STATS[d.id](d).map((s) => `<div class="stat"><small>${s.l}</small><div>${s.h}</div></div>`).join("")}</div></div>`;
-  countUp(info);
+  info.innerHTML = `<div class="swap enter"><div class="ttl"><h1>${name(d)}</h1></div>${K.ui.metaRow(d)}<div class="tagline">${d.tagline}</div></div>`;
 }
 
 function show(i, dir) {
@@ -259,27 +158,6 @@ K.rot = K.Rotator({
   onChange: (i, prev, dir) => show(i, dir),
   onTick: (p) => { const f = tiles.get(v); if (f) f.querySelector(".bar").style.width = (p * 100).toFixed(1) + "%"; },
 });
-
-/* ---------- Toasts ---------- */
-const tbox = document.getElementById("toasts");
-let tn = 0, pts = 18240, xp = 64;
-function toast() {
-  const o = TOASTS[tn++ % TOASTS.length], d = K.data.find((x) => x.id === o.id);
-  const el = document.createElement("div"); el.className = "toast" + (o.ach ? " ach" : "");
-  el.style.setProperty("--c", d.type === "live" ? "#ff2a44" : d.accent);
-  el.innerHTML = `<div class="th">${o.ach ? STAR : `<img src="${stillOf(d)}" alt="">`}</div><div class="tx"><b>${o.t}</b><span>${o.s}</span></div><small>now</small>`;
-  tbox.prepend(el);
-  while (tbox.children.length > 2) tbox.lastElementChild.remove();
-  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("in")));
-  if (o.pts) setTimeout(() => {
-    pts += o.pts; xp = Math.min(96, xp + 9);
-    document.getElementById("pts").textContent = pts.toLocaleString() + " pts";
-    document.querySelector(".xp").style.setProperty("--xp", xp + "%");
-  }, 500);
-  setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 380); }, 4600);
-}
-setTimeout(toast, 2200);
-setInterval(() => { if (!K.rot.paused && !stage.classList.contains("launching")) toast(); }, 7000);
 
 /* ---------- Ambient particles (embers tinted by the focused title) ---------- */
 const cv = document.getElementById("fx"), cx = cv.getContext("2d");
@@ -306,7 +184,7 @@ let fxOn = true;
 /* ---------- Keys ---------- */
 let launchT = 0;
 K.onKey((e) => {
-  if (e.key === "Enter") {
+  if (e.key === "Enter" && K.zone === "hero") {
     if (stage.classList.contains("launching")) return true;
     const d = K.data[K.rot.index];
     document.getElementById("lTxt").textContent = d.type === "live" ? "Joining live" : "Starting";
@@ -314,7 +192,6 @@ K.onKey((e) => {
     clearTimeout(launchT); launchT = setTimeout(() => { stage.classList.remove("launching"); K.rot.setPaused(false); K.rot.restartTimer(); }, 2600);
     return true;
   }
-  if (e.key === "t" || e.key === "T") { toast(); return true; }
   if (e.key === "p" || e.key === "P") { fxOn = !fxOn; stage.classList.toggle("no-fx", !fxOn); return true; }
 });
 
