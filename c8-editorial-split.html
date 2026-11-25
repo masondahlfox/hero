@@ -77,7 +77,6 @@
     transform: translateX(140px); opacity: 0; transition: transform .9s var(--ease-out), opacity .6s var(--ease-std), outline-color .2s; }
   .peek.is-in { transform: none; opacity: 1; transition-delay: .5s, .5s, 0s; }
   .peek.is-out { transform: translateX(-120px) scale(1.06); opacity: 0; transition-delay: 0s; }
-  .peek.is-focused { outline-color: #fff; transform: translateX(-36px); transition-delay: 0s; }
   .peek > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--fx, 50%) 50%; }
   .peek::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.85), rgba(0,0,0,0) 45%), linear-gradient(90deg, rgba(0,0,0,.25), rgba(0,0,0,0) 40%); }
   .peek .plogo { position: absolute; z-index: 2; left: 18px; bottom: 22px; width: 124px; height: 64px; }
@@ -106,7 +105,7 @@
 <script>
 const K = HeroKit.init({
   title: "C8 · Editorial Split",
-  notes: "An editorial split. The art opens from the center line like a curtain, the lockup holds the left column, and a huge condensed headline sits top-right with an inline trailer. A peek of the next title sits on the right edge, with the dwell timer running down beside it. Focus starts on the primary CTA; Right goes to +, the trailer, then the peek (Enter or Right on the peek advances). Down goes to the rail, Up to the nav.",
+  notes: "An editorial split. The art opens from the center line like a curtain, the lockup holds the left column, and a huge condensed headline sits top-right with an inline trailer. A peek of the next title sits on the right edge, with the dwell timer running down beside it. Focus starts on the primary CTA; Right goes to + then the trailer; Right again brings the peeked title into the hero with focus on its primary CTA. The peek never takes focus. Down goes to the rail, Up to the nav.",
   extraKeys: [["↑ ↓", "Nav / hero / rail"], ["Enter", "Select focused item"]],
 });
 
@@ -179,7 +178,6 @@ let zone = "hero", hf = 0, nf = 1, rf = 0, cur = null;
 function paintFocus() {
   K.stage.classList.toggle("z-rail", zone === "rail");
   if (cur) cur.querySelectorAll("[data-f]").forEach((el) => el.classList.toggle("is-focused", zone === "hero" && +el.dataset.f === hf));
-  if (peek) peek.classList.toggle("is-focused", zone === "hero" && hf === 3);
   let r = null;
   if (zone === "nav") { const [x, w] = NAV[nf]; r = [x - 6, 30, w + 12, 72]; }
   if (zone === "rail") r = [120 + rf * 284 - 8, 970, 268, 130];
@@ -200,12 +198,12 @@ K.onKey((e) => {
     const d = k === "ArrowRight" ? 1 : -1;
     if (zone === "nav") nf = Math.max(0, Math.min(NAV.length - 1, nf + d));
     else if (zone === "rail") rf = Math.max(0, Math.min(5, rf + d));
-    else if (hf + d > 3) { K.rot.next(true); return true; }       // Right on the peek → advance to the next title
+    else if (hf + d > 2) { K.rot.next(true); return true; }       // Right past the trailer → next title takes the hero, focus on its primary CTA
     else if (hf + d < 0) { K.rot.prev(true); return true; }       // Left past the primary CTA → previous title
     else { hf += d; K.rot.restartTimer(); }
     paintFocus(); return true;
   }
-  if (k === "Enter") { if (zone === "hero" && hf === 3) K.rot.next(true); else press(); return true; }
+  if (k === "Enter") { press(); return true; }
 });
 
 /* ---------- Slides ---------- */
